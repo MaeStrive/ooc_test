@@ -1,0 +1,16 @@
+{
+  "name": "Emerald Light",
+  "description": "Increase all %s% health and attack based on the number of pet types owned.",
+  "image": "ipfs://QmXgmG8PcSgrCD6maXRNYpWYywsiYsHXqCWLKbh4qhjUoj/3.png",
+  "qteCount": 4,
+  "innerValue": 35,
+  "outerValue": 55,
+  "comboValue": 1,
+  "skillName": "QTE Progress Bonus: +%s",
+  "skillValue": 15,
+  "qteSkill": "140-220",
+  "rodId": 4,
+  "attributes": [
+  ],
+  "compiler": "Mae"
+}

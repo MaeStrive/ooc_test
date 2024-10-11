@@ -1,0 +1,16 @@
+{
+  "name": "Rainbow Dance",
+  "description": "For every 5% critical rate overflow, you gain %s% critical damage.",
+  "image": "ipfs://QmXgmG8PcSgrCD6maXRNYpWYywsiYsHXqCWLKbh4qhjUoj/4.png",
+  "qteCount": 3,
+  "innerValue": 60,
+  "outerValue": 80,
+  "comboValue": 1,
+  "skillName": "QTE Attempts -1, but QTE Progress +%s",
+  "skillValue": 40,
+  "qteSkill": "180-240",
+  "rodId": 5,
+  "attributes": [
+  ],
+  "compiler": "Mae"
+}

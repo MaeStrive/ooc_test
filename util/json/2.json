@@ -1,0 +1,16 @@
+{
+  "name": "Silver Wing",
+  "description": "Pet Action Cooldown Reduced by %s%",
+  "image": "ipfs://QmXgmG8PcSgrCD6maXRNYpWYywsiYsHXqCWLKbh4qhjUoj/2.png",
+  "qteCount": 5,
+  "innerValue": 20,
+  "outerValue": 40,
+  "comboValue": 1,
+  "skillName": "QTE Attempts +%s",
+  "skillValue": 1,
+  "qteSkill": "100-200",
+  "rodId": 3,
+  "attributes": [
+  ],
+  "compiler": "Mae"
+}

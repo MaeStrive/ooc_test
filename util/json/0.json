@@ -1,0 +1,16 @@
+{
+  "name": "Classic Woodgrain",
+  "description": "An ordinary fisherman, diligently practicing.",
+  "image": "ipfs://QmXgmG8PcSgrCD6maXRNYpWYywsiYsHXqCWLKbh4qhjUoj/0.png",
+  "qteCount": 4,
+  "innerValue": 20,
+  "outerValue": 40,
+  "comboValue": 0,
+  "skillName": "Plain Fishing Rod",
+  "skillValue": 0,
+  "qteSkill": "80-160",
+  "rodId": 1,
+  "attributes": [
+  ],
+  "compiler": "Mae"
+}
