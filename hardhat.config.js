@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-etherscan")
 require("@nomiclabs/hardhat-web3");
 require('./task/test.js')
 require('./task/user.js')
+require('./task/stake.js')
 // task("balance", "Prints an account's balance")
 //     .addParam("account", "The account's address")
 //     .setAction(async taskArgs => {

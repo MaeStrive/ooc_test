@@ -123,18 +123,19 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 
     function freeMintRod(address playAddress) external onlyAdmin returns (uint256) {
         uint256 totalSupplyAll = 0;
-        for (uint i = 0; i < maxSupplies.length; i++) {
-            totalSupplyAll += maxSupplies[i];
-        }
-        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % totalSupplyAll;
-        uint256 rodType = 0;
-        for (uint256 i = 0; i < maxSupplies.length; i++) {
-            if (randomNumber < mintedSupplies[i] + maxSupplies[i]) {
-                rodType = i;
-                break;
-            }
-            randomNumber -= maxSupplies[i];
-        }
+//        for (uint i = 0; i < maxSupplies.length; i++) {
+//            totalSupplyAll += maxSupplies[i];
+//        }
+//        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % totalSupplyAll;
+//        uint256 rodType = 0;
+//        for (uint256 i = 0; i < maxSupplies.length; i++) {
+//            if (randomNumber < mintedSupplies[i] + maxSupplies[i]) {
+//                rodType = i;
+//                break;
+//            }
+//            randomNumber -= maxSupplies[i];
+//        }
+        uint256 rodTypes = 0;
         require(mintedSupplies[rodType] < maxSupplies[rodType], "Max supply reached for this rod type");
         uint256 newRodTokenId = _tokenIds.current();
         _tokenIds.increment();

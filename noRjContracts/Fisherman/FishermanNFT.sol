@@ -35,7 +35,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    string private _baseTokenURI = "ipfs://QmNkAXGMdxuZG5SYySe1u5tiEMs51LGB5GwYebtEdrHPvc/";
+    string private _baseTokenURI = "ipfs://QmRyTJ6mtC4mNFhZRcqHd3R2QLnKA1XLxffU8nXSfxiZKW/";
     uint256 public mintPrice;
 
     struct Listing {
@@ -128,18 +128,19 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     }
 
     function freeMintFisherman(address playAddress) external onlyAdmin returns (uint256) {
-        uint256 randomNumber = random() % 100 + 1;
+//        uint256 randomNumber = random() % 100 + 1;
+//        uint256 fishermanType = 0;
+//
+//        if (randomNumber <= 70) {
+//            fishermanType = 0;
+//        }
+//        else if (randomNumber <= 99) {
+//            fishermanType = 1;
+//        }
+//        else {
+//            fishermanType = 2;
+//        }
         uint256 fishermanType = 0;
-
-        if (randomNumber <= 70) {
-            fishermanType = 0;
-        }
-        else if (randomNumber <= 99) {
-            fishermanType = 1;
-        }
-        else {
-            fishermanType = 2;
-        }
 
         require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "Max supply reached for this type");
 
