@@ -2,9 +2,15 @@ require("@nomiclabs/hardhat-waffle");
 require('dotenv').config();
 require("@nomiclabs/hardhat-etherscan")
 require("@nomiclabs/hardhat-web3");
-require('./task/test.js')
+// require('./task/test.js')
 require('./task/user.js')
+// require("@nomicfoundation/hardhat-chai-matchers");
+
 require('./task/stake.js')
+require('./task/rod.js')
+const { ProxyAgent, setGlobalDispatcher } = require("undici");
+const proxyAgent = new ProxyAgent("http://127.0.0.1:7890");
+setGlobalDispatcher(proxyAgent);
 // task("balance", "Prints an account's balance")
 //     .addParam("account", "The account's address")
 //     .setAction(async taskArgs => {

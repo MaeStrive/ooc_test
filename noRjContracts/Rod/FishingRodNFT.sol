@@ -34,7 +34,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    string private _baseTokenURI = "ipfs://QmNkAXGMdxuZG5SYySe1u5tiEMs51LGB5GwYebtEdrHPvc/";
+    string private _baseTokenURI = "ipfs://QmX8MnyKNKwF3offMqY8tEMbauMcfNMcF4iA8sP2CGgqx7/";
     uint256 public mintPrice;
 
     struct Listing {
@@ -61,9 +61,11 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
     uint256[6] public maxSupplies = [8000, 7000, 6000, 5000, 4000, 500];
     uint256[6] public mintedSupplies;
 
-    mapping(uint256 => uint256) private rodTypes;
+    mapping(uint256 => uint256) private fishingRodTypes;
 
-    event RodMinted(address indexed to, uint256 indexed tokenId);
+
+
+    event RodMinted(address indexed to, uint256 indexed tokenId,uint256 indexed rodType);
     event RodAttributesUpdated(uint256 indexed tokenId);
     event AdminAdded(address indexed newAdmin);
     event AdminRemoved(address indexed removedAdmin);
@@ -92,7 +94,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
             super.supportsInterface(interfaceId);
     }
 
-    function mintRod() external payable returns (uint256) {
+    function mintRod() external payable returns (uint256,uint256) {
         require(msg.value >= mintPrice, "Insufficient payment");
         uint256 totalSupplyAll = 0;
         for (uint i = 0; i < maxSupplies.length; i++) {
@@ -110,19 +112,19 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
         require(mintedSupplies[rodType] < maxSupplies[rodType], "Max supply reached for this rod type");
         uint256 newRodTokenId = _tokenIds.current();
         _tokenIds.increment();
-        rodTypes[newRodTokenId] = rodType;
+        fishingRodTypes[newRodTokenId] = rodType;
         _mint(msg.sender, newRodTokenId);
         mintedSupplies[rodType]++;
-        emit RodMinted(msg.sender, newRodTokenId);
+        emit RodMinted(msg.sender, newRodTokenId,rodType);
 
         if (msg.value > mintPrice) {
             payable(msg.sender).transfer(msg.value - mintPrice);
         }
-        return newRodTokenId;
+        return (newRodTokenId,rodType);
     }
 
-    function freeMintRod(address playAddress) external onlyAdmin returns (uint256) {
-        uint256 totalSupplyAll = 0;
+    function freeMintRod(address playAddress) external onlyAdmin returns (uint256,uint256) {
+//        uint256 totalSupplyAll = 0;
 //        for (uint i = 0; i < maxSupplies.length; i++) {
 //            totalSupplyAll += maxSupplies[i];
 //        }
@@ -135,17 +137,17 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 //            }
 //            randomNumber -= maxSupplies[i];
 //        }
-        uint256 rodTypes = 0;
+        uint256 rodType = 0;
         require(mintedSupplies[rodType] < maxSupplies[rodType], "Max supply reached for this rod type");
         uint256 newRodTokenId = _tokenIds.current();
         _tokenIds.increment();
-        rodTypes[newRodTokenId] = rodType;
+        fishingRodTypes[newRodTokenId] = rodType;
         _mint(playAddress, newRodTokenId);
 
         mintedSupplies[rodType]++;
-        emit RodMinted(playAddress, newRodTokenId);
+        emit RodMinted(playAddress, newRodTokenId,rodType);
 
-        return newRodTokenId;
+        return (newRodTokenId,rodType);
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public onlyAdmin override(ERC721, IERC721) {
@@ -174,7 +176,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
-        uint256 rodType = rodTypes[tokenId];
+        uint256 rodType = fishingRodTypes[tokenId];
         return string(abi.encodePacked(_baseTokenURI, rodType.toString(), ".json"));
     }
 
@@ -384,6 +386,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 
         return tokenIds;  // 返回所有NFT的Token ID
     }
+
 
 
 }

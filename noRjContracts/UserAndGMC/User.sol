@@ -259,6 +259,8 @@ contract User is Ownable, AccessControl {
         return levelUpLimit;
     }
 
+
+
     function setLevelUpLimit(uint256 _levelUpLimit) external onlyAdmin {
         levelUpLimit = _levelUpLimit;
     }
@@ -331,6 +333,13 @@ contract User is Ownable, AccessControl {
     ) external view returns (uint256[10] memory) {
         require(registeredPlayers[playerAddress], "Player not registered");
         return players[playerAddress].fishCount;
+    }
+
+    function getExperience(
+        address playerAddress
+    ) external view returns (uint256) {
+        require(registeredPlayers[playerAddress], "Player not registered");
+        return players[playerAddress].experience;
     }
 
     function setFishCount(
