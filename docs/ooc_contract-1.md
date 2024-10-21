@@ -1191,7 +1191,7 @@
 
 ## 事件
 
-- `FishermanMinted(address indexed to, uint256 indexed tokenId)`: 钓手 NFT 被铸造时触发。
+- `FishermanMinted(address indexed to, uint256 indexed tokenId,uint256 indexed rodType)`: 钓手 NFT 被铸造时触发。
 - `AdminAdded(address indexed newAdmin)`: 新管理员添加时触发。
 - `AdminRemoved(address indexed removedAdmin)`: 管理员被移除时触发。
 - `ItemListed(uint256 indexed tokenId, address indexed seller, uint256 price)`: NFT 上架时触发。
@@ -1693,7 +1693,7 @@
 
 #### 概要
 
-| 函数中文名 | 取消上架     |
+| 函数中文名 | 查询某地址下的所有NFT     |
 | ---------- | ------------ |
 | 函数英文名 | getOwnedNFTs |
 | 操作权限   | 公共         |
@@ -2376,7 +2376,7 @@
 
 #### 概要
 
-| 函数中文名 | 取消上架     |
+| 函数中文名 | 查询某地址下的所有NFT     |
 | ---------- | ------------ |
 | 函数英文名 | getOwnedNFTs |
 | 操作权限   | 公共         |

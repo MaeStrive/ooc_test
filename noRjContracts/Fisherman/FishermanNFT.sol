@@ -422,7 +422,6 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         for (uint256 i = 0; i < nftCount; i++) {
             tokenIds[i] = tokenOfOwnerByIndex(owner, i);  // 遍历获取每个NFT的Token ID
         }
-
         return tokenIds;  // 返回所有NFT的Token ID
     }
 }

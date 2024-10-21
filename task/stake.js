@@ -27,29 +27,24 @@ task("stake", "stake-MaeStrive")
         await oOCContract.deployed();
         await gMCContract.addAdmin(userContract.address)
         await userContract.addUser(userAddress)
-        await userContract.setCollectedGMC(userAddress, 800)
+        await userContract.setCollectedGMC(userAddress, 10000000000)
         //claim GMC
-        await userContract.claimGMC(userAddress, 600)
-        await userContract.buyBaits(userAddress, 2)
+        await userContract.claimGMC(userAddress, 10000000000)
+        // await userContract.buyBaits(userAddress, 2)
         //Stake合约
         const StackContract = await ethers.getContractFactory("Stake")
-        const stackContract = await StackContract.deploy(gMCContract.address, oOCContract.address, 1000000);
+        const stackContract = await StackContract.deploy(gMCContract.address, oOCContract.address);
         await stackContract.deployed();
         await gMCContract.addAdmin(stackContract.address)
-        await stackContract.stake(600);
-        await stackContract.connect(signers[1]).stake(500);
-        const shareAdmin = await stackContract.getShare();
-        const shareUser = await stackContract.connect(signers[1]).getShare();
-        const totalShares = await stackContract.connect(signers[1]).totalShares();
-        console.log(shareAdmin)
-        console.log(shareUser)
-        console.log(totalShares)
-        await sleep(100000)
-        const reword = await stackContract.connect(signers[1]).withdrawdReword();
-        console.log(reword)
-        await stackContract.connect(signers[1]).withdraw(100);
-        const userOOCBalance = await oOCContract.connect(signers[1]).balanceOf(signers[1].address);
-        console.log(userOOCBalance)
+        const gmcBanlance=await gMCContract.connect(signers[1]).balanceOf(userAddress);
+        console.log(gmcBanlance)
+        await stackContract.notifyRewardAmount(1);
+        await stackContract.connect(signers[1]).stake(10000000000);
+        const gmcBanlance1=await gMCContract.connect(signers[1]).balanceOf(userAddress);
+        console.log(gmcBanlance1)
+        await sleep(1000 * 60 * 10)
+        const earn = await stackContract.connect(signers[1]).earned(userAddress);
+        console.log("earn", earn)
     });
 
 module.exports = {}

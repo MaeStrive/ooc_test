@@ -10,7 +10,7 @@ contract GMC is ERC20, Ownable {
     event AdminAdded(address indexed account);
     event AdminRemoved(address indexed account);
 
-    constructor(uint256 initialSupply) ERC20("GMCToken", "GMC") {
+    constructor(uint256 initialSupply) ERC20("GMC", "GMC") {
         _mint(msg.sender, initialSupply * (10 ** decimals()));
         _admins[msg.sender] = true;
     }

@@ -8,6 +8,7 @@ require('./task/user.js')
 
 require('./task/stake.js')
 require('./task/rod.js')
+require('./task/nft.js')
 const { ProxyAgent, setGlobalDispatcher } = require("undici");
 const proxyAgent = new ProxyAgent("http://127.0.0.1:7890");
 setGlobalDispatcher(proxyAgent);
@@ -25,7 +26,7 @@ module.exports = {
   settings: {
     optimizer: {
       enabled: true,
-      runs: 20000
+      runs: 200
     },
     outputSelection: {
       "*": {

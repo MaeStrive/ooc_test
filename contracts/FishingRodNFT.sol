@@ -32,15 +32,24 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
     // Mapping from token id to position in the allTokens array
     mapping(uint256 => uint256) private _allTokensIndex;
 
+    mapping(uint256 => uint256) private _tokenByRodTypeIndex;
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     string private _baseTokenURI = "ipfs://QmUec9jNfXBAxWELeZtsX5fmgNgmcT2yLveNyNQj4GKMzy/";
+
     uint256 public mintPrice;
 
     struct Listing {
         address seller;
         uint256 price;
     }
+
+    struct RodNft {
+        uint256 tokenId;
+        uint256 rodType;
+    }
+
     // Mapping from NFT contract address => (Token ID => Listing)
     mapping(uint256 => Listing) public listings;
 
@@ -64,8 +73,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
     mapping(uint256 => uint256) private fishingRodTypes;
 
 
-
-    event RodMinted(address indexed to, uint256 indexed tokenId,uint256 indexed rodType);
+    event RodMinted(address indexed to, uint256 indexed tokenId, uint256 indexed rodType);
     event RodAttributesUpdated(uint256 indexed tokenId);
     event AdminAdded(address indexed newAdmin);
     event AdminRemoved(address indexed removedAdmin);
@@ -94,7 +102,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
             super.supportsInterface(interfaceId);
     }
 
-    function mintRod() external payable returns (uint256,uint256) {
+    function mintRod() external payable returns (uint256, uint256) {
         require(msg.value >= mintPrice, "Insufficient payment");
         uint256 totalSupplyAll = 0;
         for (uint i = 0; i < maxSupplies.length; i++) {
@@ -115,15 +123,16 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
         fishingRodTypes[newRodTokenId] = rodType;
         _mint(msg.sender, newRodTokenId);
         mintedSupplies[rodType]++;
-        emit RodMinted(msg.sender, newRodTokenId,rodType);
+        _tokenByRodTypeIndex[newRodTokenId] = rodType;
+        emit RodMinted(msg.sender, newRodTokenId, rodType);
 
         if (msg.value > mintPrice) {
             payable(msg.sender).transfer(msg.value - mintPrice);
         }
-        return (newRodTokenId,rodType);
+        return (newRodTokenId, rodType);
     }
 
-    function freeMintRod(address playAddress) external onlyAdmin returns (uint256,uint256) {
+    function freeMintRod(address playAddress) external onlyAdmin returns (uint256, uint256) {
 //        uint256 totalSupplyAll = 0;
 //        for (uint i = 0; i < maxSupplies.length; i++) {
 //            totalSupplyAll += maxSupplies[i];
@@ -145,9 +154,11 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
         _mint(playAddress, newRodTokenId);
 
         mintedSupplies[rodType]++;
-        emit RodMinted(playAddress, newRodTokenId,rodType);
+        _tokenByRodTypeIndex[newRodTokenId] = rodType;
 
-        return (newRodTokenId,rodType);
+        emit RodMinted(playAddress, newRodTokenId, rodType);
+
+        return (newRodTokenId, rodType);
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public onlyAdmin override(ERC721, IERC721) {
@@ -375,18 +386,34 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
         ERC721.transferFrom(address(this), msg.sender, tokenId);
     }
 
-    function getOwnedNFTs(address owner) external view returns (uint256[] memory) {
+
+    function getOwnedNFTs(address owner) external view returns (RodNft[] memory) {
         uint256 nftCount = balanceOf(owner);  // 获取该地址拥有的NFT数量
 
         uint256[] memory tokenIds = new uint256[](nftCount);  // 创建数组来存储Token ID
+        uint256[] memory rodTypes = new uint256[](nftCount);  // 创建数组来存储Token ID
 
         for (uint256 i = 0; i < nftCount; i++) {
             tokenIds[i] = tokenOfOwnerByIndex(owner, i);  // 遍历获取每个NFT的Token ID
         }
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            rodTypes[i] = getRodTypeByTokenId(tokenIds[i]);  // 遍历获取每个NFT的Token ID
+        }
 
-        return tokenIds;  // 返回所有NFT的Token ID
+        RodNft[] memory rodNftInfo=new RodNft[](nftCount);
+        for (uint256 i = 0; i < nftCount; i++) {
+            RodNft memory rodInfo = RodNft({
+                tokenId: tokenIds[i],
+                rodType: rodTypes[i]
+            });
+            rodNftInfo[i]=rodInfo;
+        }
+        return rodNftInfo;  // 返回所有NFT的Token ID
     }
 
+    function getRodTypeByTokenId(uint256 tokenId) public view virtual returns (uint256){
+        return _tokenByRodTypeIndex[tokenId];
+    }
 
 
 }

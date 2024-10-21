@@ -1,22 +1,22 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IOOC",
-  "sourceName": "contracts/Stake.sol",
+  "contractName": "IFishermanNFT",
+  "sourceName": "contracts/User.sol",
   "abi": [
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "account",
+          "name": "owner",
           "type": "address"
         }
       ],
-      "name": "balanceOf",
+      "name": "getOwnedNFTs",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "uint256[]",
           "name": "",
-          "type": "uint256"
+          "type": "uint256[]"
         }
       ],
       "stateMutability": "view",
@@ -25,30 +25,20 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
-          "name": "amount",
+          "name": "tokenId",
           "type": "uint256"
         }
       ],
-      "name": "transferFrom",
+      "name": "ownerOf",
       "outputs": [
         {
-          "internalType": "bool",
+          "internalType": "address",
           "name": "",
-          "type": "bool"
+          "type": "address"
         }
       ],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     }
   ],

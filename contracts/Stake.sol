@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// 引入GMC合约的接口
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+
 interface IGMC {
     function mint(address to, uint256 amount) external;
 
@@ -15,169 +19,189 @@ interface IGMC {
 
 interface IOOC {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+
 }
 
+contract Stake is ReentrancyGuard, AccessControl, Ownable {
+    using SafeMath for uint256;
 
-contract Stake is Ownable {
+    // 质押的GMC代币
+    IGMC public stakingToken;
+    // 奖励的OOC代币
+    IOOC public rewardToken;
 
-    //质押token地址
-    IGMC stakeToken;
-    //质押奖励token地址
-    IOOC rewardToken;
-    //每分钟产出奖励数量
-    uint256 rewardPerMin;
-    //某地址的质押份额
-    mapping(address => uint256) private shares;
-    //某地址已经提现的奖励
-    mapping(address => uint256) private withdrawdReward;
-    //某地址上一次关联的每份额累计已产出奖励
-    mapping(address => uint256) private lastAddUpRewardPerShare;
-    //某地址最近一次关联的累计已产出总奖励
-    mapping(address => uint256) private lastAddUpReward;
-    //每份额累计总奖励
-    uint256 addUpRewardPerShare;
-    //总挖矿奖励数量
-    uint256 totalReward;
-    //累计份额
-    uint256 totalShares;
 
-    //最近一次（如果没有最近一次则是首次）挖矿区块时间，秒
-    uint256 lastBlockT;
-    //最近一次（如果没有最近一次则是首次）每份额累计奖励
-    uint256 lastAddUpRewardPerShareAll;
+    address private _pendingOwner;
 
-    //构造函数
-    constructor(address _stakeTokenAddr, address _rewardTokenAddr, uint256 _rewardPerMin){
-        stakeToken = IGMC(_stakeTokenAddr);
-        rewardToken = IOOC(_rewardTokenAddr);
-        rewardPerMin = _rewardPerMin;
+    // 质押奖励的发放速率
+    uint256 public rewardRate = 0;
+    uint256 public rewardsDuration = 7 days;
+
+    // 每次有用户操作时，更新为当前时间
+    uint256 public lastUpdateTime;
+    // 奖励累加值
+    uint256 public rewardPerTokenStored;
+
+    // 用户的奖励累加值
+    mapping(address => uint256) public userRewardPerTokenPaid;
+    // 用户可领取的奖励数量
+    mapping(address => uint256) public rewards;
+    // 池子中质押总量
+    uint256 private _totalSupply;
+    // 用户的余额
+    mapping(address => uint256) private _balances;
+
+    // 活动结束时间
+    uint256 public periodFinish;
+
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
+
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
+    event OwnershipTransferStarted(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+    event RewardAdded(uint256 reward);
+    event RewardsDurationUpdated(uint256 newDuration);
+
+
+    constructor(IGMC _stakingToken, IOOC _rewardToken) {
+        stakingToken = _stakingToken;
+        rewardToken = _rewardToken;
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(ADMIN_ROLE, msg.sender);
     }
 
-    //质押,【外部调用/所有人/不需要支付/读写状态】
-    /// @notice 1. msg.sender转入本合约_amount数量的质押token
-    /// @notice 4. 记录此时msg.sender已经产出的总奖励
-    /// @notice 2. 增加msg.sender等量的质押份额
-    /// @notice 3. 计算此时每份额累计总产出奖励
-    function stake(uint256 _amount) external
-    {
-        stakeToken.transfer(msg.sender, address(this), _amount);
-        uint256 currenTotalRewardPerShare = getRewardPerShare();
-        lastAddUpReward[msg.sender] += (currenTotalRewardPerShare - lastAddUpRewardPerShare[msg.sender]) * shares[msg.sender];
-        shares[msg.sender] += _amount;
-        updateTotalShare(_amount, 1);
-        lastAddUpRewardPerShare[msg.sender] = currenTotalRewardPerShare;
+
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
     }
 
-    //解除质押，提取token,【外部调用/所有人/不需要支付/读写状态】
-    /// @notice 1. _amount必须<=已经质押的份额
-    /// @notice 4. 记录此时msg.sender已经产出的总奖励
-    function unStake(uint256 _amount) external
-    {
-        require(_amount <= shares[msg.sender], "UNSTAKE_AMOUNT_MUST_LESS_SHARES");
-        stakeToken.transfer(address(this), msg.sender, _amount);
-        uint256 currenTotalRewardPerShare = getRewardPerShare();
-        lastAddUpReward[msg.sender] += (currenTotalRewardPerShare - lastAddUpRewardPerShare[msg.sender]) * shares[msg.sender];
-        shares[msg.sender] -= _amount;
-        updateTotalShare(_amount, 2);
-        lastAddUpRewardPerShare[msg.sender] = currenTotalRewardPerShare;
+    function totalSupply() external view returns (uint256) {
+        return _totalSupply;
     }
 
-    //更新质押份额,【内部调用/合约创建者/不需要支付】
-    /// @param _amount 更新的数量
-    /// @param _type 1增加，其他 减少
-    /// @notice 每次更新份额之前，先计算之前的份额累计奖励
-    function updateTotalShare(uint256 _amount, uint256 _type)
-    internal
-    {
-        lastAddUpRewardPerShareAll = getRewardPerShare();
-        lastBlockT = block.timestamp;
-        if (_type == 1) {
-            totalShares += _amount;
+    // 计算当前时刻的累加值
+    function rewardPerToken() public view returns (uint256) {
+        if (_totalSupply == 0) {
+            return rewardPerTokenStored;
+        }
+        return rewardPerTokenStored.add(
+            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply)
+        );
+    }
+
+    // 获取当前有效时间
+    function lastTimeRewardApplicable() public view returns (uint256) {
+        return block.timestamp < periodFinish ? block.timestamp : periodFinish;
+    }
+
+    function getRewardForDuration() external view returns (uint256) {
+        return rewardRate.mul(rewardsDuration);
+    }
+
+    // 计算用户可以领取的奖励数量
+    function earned(address account) public view returns (uint256) {
+        return _balances[account]
+        .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
+        .div(1e18)
+        .add(rewards[account]);
+    }
+
+    modifier updateReward(address account) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+        _;
+    }
+
+    function stake(uint256 amount) external nonReentrant updateReward(msg.sender) {
+        require(amount > 0, "Cannot stake 0");
+        _totalSupply = _totalSupply.add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
+        stakingToken.transfer(msg.sender, address(this), amount);
+        emit Staked(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
+        require(amount > 0, "Cannot withdraw 0");
+        _totalSupply = _totalSupply.sub(amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        stakingToken.transfer(address(this), msg.sender, amount);
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    function getReward() public nonReentrant updateReward(msg.sender) {
+        uint256 reward = rewards[msg.sender];
+        if (reward > 0) {
+            rewards[msg.sender] = 0;
+            rewardToken.transferFrom(address(this), msg.sender, reward);
+            emit RewardPaid(msg.sender, reward);
+        }
+    }
+
+    function exit() external {
+        withdraw(_balances[msg.sender]);
+        getReward();
+    }
+
+    // 设置奖励的发放速率和结束时间
+    function notifyRewardAmount(uint256 reward) external onlyAdmin updateReward(address(0)) {
+        if (block.timestamp >= periodFinish) {
+            rewardRate = reward.div(rewardsDuration);
         } else {
-            totalShares -= _amount;
+            uint256 remaining = periodFinish.sub(block.timestamp);
+            uint256 leftover = remaining.mul(rewardRate);
+            rewardRate = reward.add(leftover).div(rewardsDuration);
         }
+
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range, preventing overflows due to
+        // very high values of rewardRate in the earned and rewardsPerToken functions;
+        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+        uint balance = rewardToken.balanceOf(address(this));
+        require(rewardRate <= balance.div(rewardsDuration), "Provided reward too high");
+
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp.add(rewardsDuration);
+        emit RewardAdded(reward);
     }
 
-    //获取截至当前每份额累计产出,【内部调用/合约创建者/不需要支付/只读】
-    /// @notice 1.（当前区块时间戳-具体当前最近一次计算的时间戳） * 每分钟产出奖励 / 60秒 / 总份额  + 距离当前最近一次计算的时候的每份额累计奖励 = 当前每份额累计奖励
-    /// @notice 2. 更新最近一次计算每份额累计奖励的时间和数量
-    function getRewardPerShare()
-    internal
-    view
-    returns (uint256)
-    {
-        if (totalShares == 0) {
-            return lastAddUpRewardPerShareAll; // No staking has occurred, so no rewards to distribute
-        }
-        return (block.timestamp - lastBlockT) * rewardPerMin / 60 / totalShares + lastAddUpRewardPerShareAll;
+    function setRewardsDuration(uint256 _rewardsDuration) external onlyAdmin {
+        require(
+            block.timestamp > periodFinish,
+            "Previous rewards period must be complete before changing the duration for the new period"
+        );
+        rewardsDuration = _rewardsDuration;
+        emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    //计算累计奖励,【内部调用/合约创建者/不需要支付/只读】
-    /// @notice 仅供内部调用，统一计算规则
-    function getaddupReword(address _address)
-    internal
-    view
-    returns (uint256)
-    {
-        return lastAddUpReward[_address] + ((getRewardPerShare() - lastAddUpRewardPerShare[_address]) * shares[_address]);
+    modifier onlyAdmin() {
+        require(hasRole(ADMIN_ROLE, msg.sender), "Caller is not an admin");
+        _;
     }
 
-    //计算可提现奖励,【内部调用/合约创建者/不需要支付/只读】
-    /// @notice 仅供内部调用，统一计算规则
-    function getWithdrawdReword(address _address)
-    internal
-    view
-    returns (uint256)
-    {
-        return lastAddUpReward[_address] + ((getRewardPerShare() - lastAddUpRewardPerShare[_address]) * shares[_address]) - withdrawdReward[_address];
+    function addAdmin(address newAdmin) external onlyOwner {
+        grantRole(ADMIN_ROLE, newAdmin);
     }
 
-    //提现收益,【外部调用/所有人/不需要支付/读写】
-    /// @notice 1. 计算截至到当前的累计获得奖励
-    /// @notice 2. _amount必须<=(累计获得奖励-已提现奖励)
-    /// @notice 3. 提现，提现需要先增加数据，再进行提现操作
-    function withdraw(uint256 _amount)
-    external
-    {
-        require(_amount <= getWithdrawdReword(msg.sender), "WITHDRAW_AMOUNT_LESS_ADDUPREWARD");
-        withdrawdReward[msg.sender] += _amount;
-        rewardToken.transferFrom(address(this), msg.sender, _amount);
+    function removeAdmin(address admin) external onlyOwner {
+        revokeRole(ADMIN_ROLE, admin);
     }
 
-    //获取可提现奖励，【外部调用/所有人/不需要支付】
-    function withdrawdReword()
-    external
-    view
-    returns (uint256)
-    {
-        return getWithdrawdReword(msg.sender);
-    }
 
-    //获取已提现奖励，【外部调用/所有人/不需要支付】
-    function hadWithdrawdReword()
-    external
-    view
-    returns (uint256)
-    {
-        return withdrawdReward[msg.sender];
+    function transferOwnership(
+        address newOwner
+    ) public virtual override onlyOwner {
+        require(newOwner != address(0), "New owner is the zero address");
+        _pendingOwner = newOwner;
+        emit OwnershipTransferStarted(owner(), newOwner);
     }
-
-    //获取累计奖励，【外部调用/所有人/不需要支付】
-    function addupReword()
-    external
-    view
-    returns (uint256)
-    {
-        return getaddupReword(msg.sender);
-    }
-
-    //获取质押份额,【外部调用/所有人/不需要支付/只读】
-    function getShare()
-    external
-    view
-    returns (uint256)
-    {
-        return shares[msg.sender];
-    }
-
 }
