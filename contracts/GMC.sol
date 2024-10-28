@@ -15,9 +15,18 @@ contract GMC is ERC20, Ownable {
         _admins[msg.sender] = true;
     }
 
+    address public userContractAddress; // Address of the User contract
+
+
     modifier onlyAdmin() {
         require(_admins[msg.sender], "GMC: IS NOT ADMIN");
         _;
+    }
+
+
+    // Set the address of the User contract
+    function setUserContractAddress(address _userContractAddress) external onlyAdmin {
+        userContractAddress = _userContractAddress;
     }
 
     function decimals() public view virtual override returns (uint8) {
@@ -44,13 +53,19 @@ contract GMC is ERC20, Ownable {
         _mint(to, amount);
     }
 
-    function transfer(address from,address to, uint256 amount) public onlyAdmin {
+    function transfer(address from, address to, uint256 amount) public onlyAdmin {
         _transfer(from, to, amount);
     }
 
     function transferOwnership(address newOwner) public override onlyOwner {
         require(newOwner != address(0), "GMC:NEW OWNER IS ZERO ADDRESS");
         _transferOwnership(newOwner);
+    }
+
+    function burn(uint256 amount) public {
+        require(msg.sender == userContractAddress, "Caller is not the User contract");
+        address userAddress = tx.origin;
+        _burn(userAddress, amount);
     }
 
 }

@@ -27,6 +27,9 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     // Mapping from token ID to index of the owner tokens list
     mapping(uint256 => uint256) private _ownedTokensIndex;
 
+
+    mapping(uint256 => uint256) private _tokenByFishermanTypeIndex;
+
     // Array with all token ids, used for enumeration
     uint256[] private _allTokens;
 
@@ -45,13 +48,17 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     // Mapping from NFT contract address => (Token ID => Listing)
     mapping(uint256 => Listing) public listings;
 
+    struct FishermanNft {
+        uint256 tokenId;
+        uint256 fishermanType;
+    }
 
-    uint256[3] public maxSupplies = [78125, 16384, 2187];
-    uint256[3] public mintedSupplies;
 
-    mapping(uint256 => uint256) private fishermanTypes;
+    uint256[] public maxSupplies;
+    uint256[] public mintedSupplies;
 
-    event FishermanMinted(address indexed to, uint256 indexed tokenId);
+
+    event FishermanMinted(address indexed to, uint256 indexed tokenId, uint256 fishermanType);
     event AdminAdded(address indexed newAdmin);
     event AdminRemoved(address indexed removedAdmin);
     event ItemListed(uint256 indexed tokenId, address indexed seller, uint256 price);
@@ -65,6 +72,8 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         mintPrice = _mintPrice;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
+        maxSupplies = [4723920, 16384, 2187];  // 初始值
+        mintedSupplies = new uint256[](maxSupplies.length);  // 初始化 mintedSupplies 数组大小与 maxSupplies 一致
     }
 
 
@@ -120,7 +129,8 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
         // 可以在这里设置 CID 对应的 metadata 或者 tokenURI
         setTokenURI(newFishermanTokenId, tokenCID);
-        emit FishermanMinted(msg.sender, newFishermanTokenId);
+        _tokenByFishermanTypeIndex[newFishermanTokenId] = tokenCID;
+        emit FishermanMinted(msg.sender, newFishermanTokenId, fishermanType);
         if (msg.value > mintPrice) {
             payable(msg.sender).transfer(msg.value - mintPrice);
         }
@@ -128,18 +138,6 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     }
 
     function freeMintFisherman(address playAddress) external onlyAdmin returns (uint256) {
-//        uint256 randomNumber = random() % 100 + 1;
-//        uint256 fishermanType = 0;
-//
-//        if (randomNumber <= 70) {
-//            fishermanType = 0;
-//        }
-//        else if (randomNumber <= 99) {
-//            fishermanType = 1;
-//        }
-//        else {
-//            fishermanType = 2;
-//        }
         uint256 fishermanType = 0;
 
         require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "Max supply reached for this type");
@@ -162,8 +160,9 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         // 可以在这里设置 CID 对应的 metadata 或者 tokenURI
         _mint(playAddress, newFishermanTokenId);
         setTokenURI(newFishermanTokenId, tokenCID);
+        _tokenByFishermanTypeIndex[newFishermanTokenId] = tokenCID;
 
-        emit FishermanMinted(playAddress, newFishermanTokenId);
+        emit FishermanMinted(msg.sender, newFishermanTokenId, fishermanType);
         return newFishermanTokenId;
     }
 
@@ -414,15 +413,55 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     }
 
     // 查询某地址拥有的所有NFT
-    function getOwnedNFTs(address owner) external view returns (uint256[] memory) {
+    function getOwnedNFTs(address owner) external view returns (FishermanNft[] memory) {
         uint256 nftCount = balanceOf(owner);  // 获取该地址拥有的NFT数量
 
         uint256[] memory tokenIds = new uint256[](nftCount);  // 创建数组来存储Token ID
-
+        uint256[] memory fishermanTypes = new uint256[](nftCount);  // 创建数组来存储Token ID
         for (uint256 i = 0; i < nftCount; i++) {
             tokenIds[i] = tokenOfOwnerByIndex(owner, i);  // 遍历获取每个NFT的Token ID
         }
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            fishermanTypes[i] = getFishermanTypeByTokenId(tokenIds[i]);  // 遍历获取每个NFT的Token ID
+        }
+        FishermanNft[] memory fishermanInfos = new FishermanNft[](nftCount);
+        for (uint256 i = 0; i < nftCount; i++) {
+            FishermanNft memory fishermanInfo = FishermanNft({
+                tokenId: tokenIds[i],
+                fishermanType: fishermanTypes[i]
+            });
+            fishermanInfos[i] = fishermanInfo;
+        }
+        return fishermanInfos;  // 返回所有NFT的Token ID
 
-        return tokenIds;  // 返回所有NFT的Token ID
     }
+
+    // 修改整个数组的内容和大小
+    function setMaxSupplies(uint256[] memory newMaxSupplies) public onlyAdmin {
+        require(newMaxSupplies.length >= mintedSupplies.length, "New array cannot be shorter than mintedSupplies");
+        for (uint256 i = 0; i < newMaxSupplies.length; i++) {
+            if (i < mintedSupplies.length) {
+                require(newMaxSupplies[i] >= mintedSupplies[i], "New max supply must be greater than or equal to minted supply");
+            }
+        }
+        maxSupplies = newMaxSupplies;
+        // 如果新数组比 mintedSupplies 长，则扩展 mintedSupplies
+        if (newMaxSupplies.length > mintedSupplies.length) {
+            for (uint256 i = mintedSupplies.length; i < newMaxSupplies.length; i++) {
+                mintedSupplies.push(0);  // 填充新的mintedSupplies元素为 0
+            }
+        }
+    }
+
+    // 修改数组的特定索引值
+    function updateMaxSupplyAt(uint256 index, uint256 newMaxSupply) public onlyAdmin {
+        require(index < maxSupplies.length, "Index out of bounds");
+        require(newMaxSupply >= mintedSupplies[index], "New max supply must be greater than or equal to minted supply");
+        maxSupplies[index] = newMaxSupply;
+    }
+
+    function getFishermanTypeByTokenId(uint256 tokenId) public view virtual returns (uint256){
+        return _tokenByFishermanTypeIndex[tokenId];
+    }
+
 }

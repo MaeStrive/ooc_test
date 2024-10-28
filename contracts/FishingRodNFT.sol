@@ -67,13 +67,11 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
     }
 
     mapping(uint256 => RodAttributes) private _rodAttributes;
-    uint256[6] public maxSupplies = [8000, 7000, 6000, 5000, 4000, 500];
-    uint256[6] public mintedSupplies;
 
     mapping(uint256 => uint256) private fishingRodTypes;
 
 
-    event RodMinted(address indexed to, uint256 indexed tokenId, uint256 indexed rodType);
+    event RodMinted(address indexed to, uint256 indexed tokenId, uint256 rodType);
     event RodAttributesUpdated(uint256 indexed tokenId);
     event AdminAdded(address indexed newAdmin);
     event AdminRemoved(address indexed removedAdmin);
@@ -104,56 +102,52 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 
     function mintRod() external payable returns (uint256, uint256) {
         require(msg.value >= mintPrice, "Insufficient payment");
-        uint256 totalSupplyAll = 0;
-        for (uint i = 0; i < maxSupplies.length; i++) {
-            totalSupplyAll += maxSupplies[i];
-        }
-        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % totalSupplyAll;
+
+        // Define probabilities for each rod type: 67%, 12%, 8%, 6%, 4%, 3%
+        uint8[6] memory probabilities = [67, 12, 8, 6, 4, 3];
+
+        // Sum of probabilities (100% = 67 + 12 + 8 + 6 + 4 + 3)
+        uint256 totalProbability = 100;
+
+        // Generate a random number in the range of 0 to totalProbability (0 to 100)
+        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % totalProbability;
+
+        // Determine the rod type based on probabilities
         uint256 rodType = 0;
-        for (uint256 i = 0; i < maxSupplies.length; i++) {
-            if (randomNumber < mintedSupplies[i] + maxSupplies[i]) {
+        uint256 cumulativeProbability = 0;
+        for (uint256 i = 0; i < probabilities.length; i++) {
+            cumulativeProbability += probabilities[i];
+            if (randomNumber < cumulativeProbability) {
                 rodType = i;
                 break;
             }
-            randomNumber -= maxSupplies[i];
         }
-        require(mintedSupplies[rodType] < maxSupplies[rodType], "Max supply reached for this rod type");
+
+        // Mint the new rod and assign its type
         uint256 newRodTokenId = _tokenIds.current();
         _tokenIds.increment();
         fishingRodTypes[newRodTokenId] = rodType;
         _mint(msg.sender, newRodTokenId);
-        mintedSupplies[rodType]++;
         _tokenByRodTypeIndex[newRodTokenId] = rodType;
+
         emit RodMinted(msg.sender, newRodTokenId, rodType);
 
+        // Refund excess payment if over mintPrice
         if (msg.value > mintPrice) {
             payable(msg.sender).transfer(msg.value - mintPrice);
         }
+
         return (newRodTokenId, rodType);
     }
 
+
     function freeMintRod(address playAddress) external onlyAdmin returns (uint256, uint256) {
-//        uint256 totalSupplyAll = 0;
-//        for (uint i = 0; i < maxSupplies.length; i++) {
-//            totalSupplyAll += maxSupplies[i];
-//        }
-//        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % totalSupplyAll;
-//        uint256 rodType = 0;
-//        for (uint256 i = 0; i < maxSupplies.length; i++) {
-//            if (randomNumber < mintedSupplies[i] + maxSupplies[i]) {
-//                rodType = i;
-//                break;
-//            }
-//            randomNumber -= maxSupplies[i];
-//        }
         uint256 rodType = 0;
-        require(mintedSupplies[rodType] < maxSupplies[rodType], "Max supply reached for this rod type");
         uint256 newRodTokenId = _tokenIds.current();
         _tokenIds.increment();
         fishingRodTypes[newRodTokenId] = rodType;
         _mint(playAddress, newRodTokenId);
 
-        mintedSupplies[rodType]++;
         _tokenByRodTypeIndex[newRodTokenId] = rodType;
 
         emit RodMinted(playAddress, newRodTokenId, rodType);

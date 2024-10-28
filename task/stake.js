@@ -38,13 +38,13 @@ task("stake", "stake-MaeStrive")
         await gMCContract.addAdmin(stackContract.address)
         const gmcBanlance=await gMCContract.connect(signers[1]).balanceOf(userAddress);
         console.log(gmcBanlance)
-        await stackContract.notifyRewardAmount(1);
+        await stackContract.notifyRewardAmount(5);
         await stackContract.connect(signers[1]).stake(10000000000);
         const gmcBanlance1=await gMCContract.connect(signers[1]).balanceOf(userAddress);
         console.log(gmcBanlance1)
-        await sleep(1000 * 60 * 10)
-        const earn = await stackContract.connect(signers[1]).earned(userAddress);
-        console.log("earn", earn)
+        // await sleep(1000 * 60 * 10)
+        // const earn = await stackContract.connect(signers[1]).earned(userAddress);
+        // console.log("earn", earn)
     });
 
 module.exports = {}

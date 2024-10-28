@@ -15,13 +15,22 @@ task("nft", "nft-MaeStrive")
         const FishingRodNFT = await ethers.getContractFactory("FishingRodNFT");
         const fishingRodNFT = await FishingRodNFT.deploy(ethers.utils.parseEther("0.00001"));
         await fishingRodNFT.deployed();
+        const mintedSupplies=await fishermanNFT.mintedSupplies(0)
+        console.log(mintedSupplies)
+        const maxSupplies=await fishermanNFT.maxSupplies(0)
+        console.log(maxSupplies)
+        await fishermanNFT.setMaxSupplies([90000,50000,40000,30000])
+        const mintedSupplies1=await fishermanNFT.mintedSupplies(3)
+        console.log(mintedSupplies1)
+        const maxSupplies1=await fishermanNFT.maxSupplies(3)
+        console.log(maxSupplies1)
         await fishingRodNFT.mintRod({value: ethers.utils.parseEther("1")});
         await fishingRodNFT.freeMintRod(deployAddress);
         const GMCContract = await ethers.getContractFactory("GMC");
-        const gmcContract = await GMCContract.deploy(ethers.utils.parseEther("1"))
+        const gmcContract = await GMCContract.deploy(10000000000)
         await gmcContract.deployed();
         const UserContract = await ethers.getContractFactory("User");
-        const userContract = await UserContract.deploy(gmcContract.address, fishermanNFT.address, fishingRodNFT.address, ethers.utils.parseEther("10"))
+        const userContract = await UserContract.deploy(gmcContract.address, fishermanNFT.address, fishingRodNFT.address)
         await userContract.deployed();
         const rodType = await fishingRodNFT.getRodTypeByTokenId(0)
         const rodType1 = await fishingRodNFT.getRodTypeByTokenId(1)
@@ -69,7 +78,17 @@ task("nft", "nft-MaeStrive")
 
 
        const nfts= await fishingRodNFT.getOwnedNFTs(deployAddress)
-        console.log(nfts)
+        // console.log(nfts)
+        await gmcContract.addAdmin(userContract.address)
+        await gmcContract.setUserContractAddress(userContract.address)
+        // await userContract.setCollectedGMC(deployAddress, ethers800)
+        await userContract.claimGMC(userAddress, ethers.utils.parseEther("5"))
+        const gmcBalance=await gmcContract.balanceOf(userAddress)
+        console.log(gmcBalance)
+        await userContract.buyBaits(49)
+        await userContract.connect(signers[1]).buyBaits(1)
+        const gmcBalance1=await gmcContract.balanceOf(userAddress)
+        console.log(gmcBalance1)
     });
 
 module.exports = {}
