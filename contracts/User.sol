@@ -176,7 +176,7 @@ contract User is Ownable, AccessControl {
         address userAddress,
         uint256 exp
     ) external onlyAdmin {
-        require(registeredPlayers[userAddress], "101");
+        require(registeredPlayers[userAddress]);
         PlayerInfo storage player = players[userAddress];
         player.experience = exp;
         emit ExperienceAdded(userAddress, exp);
@@ -186,7 +186,7 @@ contract User is Ownable, AccessControl {
         address userAddress,
         uint256 fishermanId
     ) external onlyAdmin {
-        require(registeredPlayers[userAddress], "101");
+        require(registeredPlayers[userAddress]);
         uint256 realFishermanId;
         // Check ownership
         uint256[] memory fishermanIds;
@@ -209,13 +209,13 @@ contract User is Ownable, AccessControl {
     function getCurrentFishermanNFT(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].currentFishermanNFT;
     }
 
 
     function changeRod(uint256 rodId, address userAddress) external onlyAdmin {
-        require(registeredPlayers[userAddress], "101");
+        require(registeredPlayers[userAddress]);
         uint256 realFishingRodId;
         uint256[] memory fishingRodIds;
         // Check ownership
@@ -238,7 +238,7 @@ contract User is Ownable, AccessControl {
     function getCurrentFishingRodNFT(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].currentRodNFT;
     }
 
@@ -246,7 +246,7 @@ contract User is Ownable, AccessControl {
     function getUnlockedFishingSpots(
         address userAddress
     ) external view returns (uint256[5] memory) {
-        require(registeredPlayers[userAddress], "101");
+        require(registeredPlayers[userAddress]);
         return players[userAddress].unlockedFishingSpots;
     }
 
@@ -284,7 +284,7 @@ contract User is Ownable, AccessControl {
     function getPlayerLevel(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].level;
     }
 
@@ -292,7 +292,7 @@ contract User is Ownable, AccessControl {
         address playerAddress,
         uint256 newLevel
     ) external onlyAdmin {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         players[playerAddress].level = newLevel;
         emit PlayerLevelUpdated(playerAddress, newLevel);
     }
@@ -300,7 +300,7 @@ contract User is Ownable, AccessControl {
     function getFishPoolLevel(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].fishPoolLevel;
     }
 
@@ -308,7 +308,7 @@ contract User is Ownable, AccessControl {
         address playerAddress,
         uint256 newLevel
     ) external onlyAdmin {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         players[playerAddress].fishPoolLevel = newLevel;
         emit FishPoolLevelUpdated(playerAddress, newLevel);
     }
@@ -316,14 +316,14 @@ contract User is Ownable, AccessControl {
     function getFishCount(
         address playerAddress
     ) external view returns (uint256[10] memory) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].fishCount;
     }
 
     function getExperience(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].experience;
     }
 
@@ -332,7 +332,7 @@ contract User is Ownable, AccessControl {
         uint256 star,
         uint256 newCount
     ) external onlyAdmin {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         players[playerAddress].fishCount[star] = newCount;
         emit FishCountUpdated(playerAddress, star, newCount);
     }
@@ -340,7 +340,7 @@ contract User is Ownable, AccessControl {
     function getCollectedGMC(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].collectedGMC;
     }
 
@@ -348,7 +348,7 @@ contract User is Ownable, AccessControl {
         address playerAddress,
         uint256 newAmount
     ) external onlyAdmin {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         players[playerAddress].collectedGMC = newAmount;
         emit CollectedGMCUpdated(playerAddress, newAmount);
     }
@@ -356,7 +356,7 @@ contract User is Ownable, AccessControl {
     function getBaitCount(
         address playerAddress
     ) external view returns (uint256) {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         return players[playerAddress].baitCount;
     }
 
@@ -364,14 +364,14 @@ contract User is Ownable, AccessControl {
         address playerAddress,
         uint256 newCount
     ) external onlyAdmin {
-        require(registeredPlayers[playerAddress], "101");
+        require(registeredPlayers[playerAddress]);
         players[playerAddress].baitCount = newCount;
         emit BaitCountUpdated(playerAddress, newCount);
     }
 
 
     function claimGMC(address userAddress, uint256 count) external onlyAdmin {
-        require(registeredPlayers[userAddress], "101");
+        require(registeredPlayers[userAddress]);
         uint256 amount = players[userAddress].collectedGMC;  // 获取用户的collectedGMC
         require(amount >= count, "104");  // 确保有可领取的GMC
         gmcContract.mint(userAddress, count);  // 发送GMC到用户地址
@@ -380,7 +380,7 @@ contract User is Ownable, AccessControl {
     }
 
     function buyBaits(uint256 count) external {
-        require(registeredPlayers[msg.sender], "101");
+        require(registeredPlayers[msg.sender]);
         require(players[msg.sender].baitCount + count <= baitPurchaseLimit, "108");
         uint256 totalPrice = count * baitPrice; // 计算总价格
         // 检查用户 GMC 余额
@@ -392,11 +392,24 @@ contract User is Ownable, AccessControl {
         emit BaitCountUpdated(msg.sender, players[msg.sender].baitCount);
     }
 
+    function buyBaitsAdmin(address userAddress, uint256 count) external onlyAdmin {
+        require(registeredPlayers[userAddress]);
+        require(players[userAddress].baitCount + count <= baitPurchaseLimit, "108");
+        uint256 totalPrice = count * baitPrice; // 计算总价格
+        // 检查用户 GMC 余额
+        require(gmcContract.balanceOf(userAddress) >= totalPrice, "103");
+        // 扣除 GMC
+        gmcContract.burn(totalPrice);
+        // 增加用户的 baitCount
+        players[userAddress].baitCount += count;
+        emit BaitCountUpdated(userAddress, players[userAddress].baitCount);
+    }
+
 
     function updateUserData(PlayerInfo[] memory playerInfo, address[] memory playerAddresses) external onlyAdmin {
         require(playerInfo.length == playerAddresses.length, "102");
         for (uint256 i = 0; i < playerInfo.length; i++) {
-            require(registeredPlayers[playerAddresses[i]], "101");
+            require(registeredPlayers[playerAddresses[i]]);
             // 更新玩家信息
             players[playerAddresses[i]].fishingCount = playerInfo[i].fishingCount;
             players[playerAddresses[i]].experience = playerInfo[i].experience;

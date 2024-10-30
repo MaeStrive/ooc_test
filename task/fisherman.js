@@ -13,7 +13,7 @@ task("fisherman", "fisherman-MaeStrive")
         const myContract = await MyContract.deploy(ethers.utils.parseEther("0.000001"));
         await myContract.deployed();
         // 等待交易被矿工打包
-        const tx = await myContract.freeMintFisherman(signers[1].address);
+            const tx = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
         const tx1 = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
         const tx2 = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
         const tx3 = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
@@ -57,8 +57,10 @@ task("fisherman", "fisherman-MaeStrive")
 
         const ownNft = await myContract.getOwnedNFTs(deployAddress);
         const tokenURI = await myContract.tokenURI(3);
+        const fishermanType666 = await myContract.getFishermanTypeByTokenId(0);
         console.log(ownNft)
         console.log(tokenURI)
+        console.log(fishermanType666)
     });
 
 module.exports = {}

@@ -28,7 +28,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     mapping(uint256 => uint256) private _ownedTokensIndex;
 
 
-    mapping(uint256 => uint256) private _tokenByFishermanTypeIndex;
+    mapping(uint256 => string) private _tokenByFishermanTypeIndex;
 
     // Array with all token ids, used for enumeration
     uint256[] private _allTokens;
@@ -38,7 +38,10 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    string private _baseTokenURI = "ipfs://QmRyTJ6mtC4mNFhZRcqHd3R2QLnKA1XLxffU8nXSfxiZKW/";
+    // 新增 mapping 记录已铸造的图片 URI
+    mapping(string => bool) private mintedURIs;
+
+    string private _baseTokenURI = "ipfs://QmQ3DbbCuPH5cVFn4d6CeyAMLmwzTjNNtRt8nuaEBroFJj/";
     uint256 public mintPrice;
 
     struct Listing {
@@ -50,15 +53,20 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
     struct FishermanNft {
         uint256 tokenId;
-        uint256 fishermanType;
+        string fishermanType;
     }
 
 
     uint256[] public maxSupplies;
     uint256[] public mintedSupplies;
 
+    // 定义状态变量，用于存储每种类型的部位选项
+    uint8[9] public partOptions0 = [1, 1, 9, 9, 9, 9, 9, 9, 9]; // 类型 0 的部位选项
+    uint8[9] public partOptions1 = [1, 1, 4, 4, 4, 4, 4, 4, 4]; // 类型 1 的部位选项
+    uint8[9] public partOptions2 = [1, 1, 3, 3, 3, 3, 3, 3, 3]; // 类型 2 的部位选项
 
-    event FishermanMinted(address indexed to, uint256 indexed tokenId, uint256 fishermanType);
+
+    event FishermanMinted(address indexed to, uint256 indexed tokenId, string fishermanType);
     event AdminAdded(address indexed newAdmin);
     event AdminRemoved(address indexed removedAdmin);
     event ItemListed(uint256 indexed tokenId, address indexed seller, uint256 price);
@@ -72,14 +80,14 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         mintPrice = _mintPrice;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
-        maxSupplies = [4723920, 16384, 2187];  // 初始值
+        maxSupplies = [4782969, 16384, 2187];  // 初始值
         mintedSupplies = new uint256[](maxSupplies.length);  // 初始化 mintedSupplies 数组大小与 maxSupplies 一致
     }
 
 
 
     modifier onlyAdmin() {
-        require(hasRole(ADMIN_ROLE, msg.sender), "Caller is not an admin");
+        require(hasRole(ADMIN_ROLE, msg.sender), "301");
         _;
     }
 
@@ -97,74 +105,123 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         uint256 randomNumber = random() % 100 + 1;
         uint256 fishermanType = 0;
 
-        if (randomNumber <= 70) {
-            fishermanType = 0;
+        if (randomNumber <= 49) {
+            fishermanType = 1;
         }
-        else if (randomNumber <= 99) {
+        else if (randomNumber <= 50) {
             fishermanType = 1;
         }
         else {
             fishermanType = 2;
         }
 
-        require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "Max supply reached for this type");
+        require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "106");
 
         uint256 newFishermanTokenId = _tokenIds.current(); // 获取当前递增的 token ID
         _tokenIds.increment(); // 递增 token ID
 
-        // 根据 fishermanType 选择图片的 CID 区间
-        uint256 tokenCID;
-        if (fishermanType == 0) {
-            tokenCID = mintedSupplies[fishermanType]; // 分配低品质的 CID （0 到 79999）
-        } else if (fishermanType == 1) {
-            tokenCID = mintedSupplies[fishermanType] + maxSupplies[0]; // 分配中品质的 CID （80000 到 94999）
-        } else {
-            tokenCID = mintedSupplies[fishermanType] + maxSupplies[0] + maxSupplies[1]; // 分配高品质的 CID （95000 到 99999）
-        }
+        // 根据 fishermanType 定义每个部位的选项数量
+        uint8[9] memory partOptions;
 
+        if (fishermanType == 0) {
+            partOptions = partOptions0;
+        } else if (fishermanType == 1) {
+            partOptions = partOptions1;
+        } else {
+            partOptions = partOptions2;
+        }
+        string memory partIdString;
+
+        bool uniqueIdFound = false;
+        while (!uniqueIdFound) {
+            // 随机生成每个部位的 ID
+            uint8[9] memory partIds; // 8 个部位
+            partIds[0] = uint8(fishermanType + 1);
+            for (uint8 i = 1; i < partIds.length; i++) {
+                partIds[i] = uint8(random() % partOptions[i] + 1); // 随机生成部位 ID
+            }
+            // 构建部位 ID 字符串
+            partIdString = string(abi.encodePacked(
+                uintToString(partIds[0]),
+                uintToString(partIds[1]),
+                uintToString(partIds[2]),
+                uintToString(partIds[3]),
+                uintToString(partIds[4]),
+                uintToString(partIds[5]),
+                uintToString(partIds[6]),
+                uintToString(partIds[7]),
+                uintToString(partIds[8])));
+            // 检查该 URI 是否已经铸造
+            if (!mintedURIs[partIdString]) {
+                uniqueIdFound = true; // 找到未被铸造的 ID
+            }
+        }
         // 增加该类型的已 mint 数量
         mintedSupplies[fishermanType]++;
 
         _mint(msg.sender, newFishermanTokenId);
 
         // 可以在这里设置 CID 对应的 metadata 或者 tokenURI
-        setTokenURI(newFishermanTokenId, tokenCID);
-        _tokenByFishermanTypeIndex[newFishermanTokenId] = tokenCID;
-        emit FishermanMinted(msg.sender, newFishermanTokenId, fishermanType);
+        setTokenURI(newFishermanTokenId, partIdString);
+        _tokenByFishermanTypeIndex[newFishermanTokenId] = partIdString;
+        // 标记该 URI 已铸造
+        mintedURIs[partIdString] = true;
+        emit FishermanMinted(msg.sender, newFishermanTokenId, partIdString);
         if (msg.value > mintPrice) {
             payable(msg.sender).transfer(msg.value - mintPrice);
         }
         return newFishermanTokenId;
     }
 
-    function freeMintFisherman(address playAddress) external onlyAdmin returns (uint256) {
-        uint256 fishermanType = 0;
-
-        require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "Max supply reached for this type");
-
-        uint256 newFishermanTokenId = _tokenIds.current(); // 获取当前递增的 token ID
-        _tokenIds.increment(); // 递增 token ID
-
-        // 根据 fishermanType 选择图片的 CID 区间
-        uint256 tokenCID;
-        if (fishermanType == 0) {
-            tokenCID = mintedSupplies[fishermanType]; // 分配低品质的 CID （0 到 79999）
-        } else if (fishermanType == 1) {
-            tokenCID = mintedSupplies[fishermanType] + maxSupplies[0]; // 分配中品质的 CID （80000 到 94999）
-        } else {
-            tokenCID = mintedSupplies[fishermanType] + maxSupplies[0] + maxSupplies[1]; // 分配高品质的 CID （95000 到 99999）
-        }
-
-        // 增加该类型的已 mint 数量
-        mintedSupplies[fishermanType]++;
-        // 可以在这里设置 CID 对应的 metadata 或者 tokenURI
-        _mint(playAddress, newFishermanTokenId);
-        setTokenURI(newFishermanTokenId, tokenCID);
-        _tokenByFishermanTypeIndex[newFishermanTokenId] = tokenCID;
-
-        emit FishermanMinted(msg.sender, newFishermanTokenId, fishermanType);
-        return newFishermanTokenId;
-    }
+//    function freeMintFisherman(address playAddress) external onlyAdmin returns (uint256) {
+//        uint256 fishermanType = 0;
+//        require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "106");
+//
+//        uint256 newFishermanTokenId = _tokenIds.current(); // 获取当前递增的 token ID
+//        _tokenIds.increment(); // 递增 token ID
+//
+//        // 根据 fishermanType 定义每个部位的选项数量
+//        uint8[9] memory partOptions;
+//        partOptions = partOptions0;
+//
+//        string memory partIdString;
+//
+//        bool uniqueIdFound = false;
+//        while (!uniqueIdFound) {
+//            // 随机生成每个部位的 ID
+//            uint8[9] memory partIds; // 8 个部位
+//            partIds[0] = uint8(fishermanType + 1);
+//            for (uint8 i = 1; i < partIds.length; i++) {
+//                partIds[i] = uint8(random() % partOptions[i] + 1); // 随机生成部位 ID
+//            }
+//            // 构建部位 ID 字符串
+//            partIdString = string(abi.encodePacked(
+//                uintToString(partIds[0]),
+//                uintToString(partIds[1]),
+//                uintToString(partIds[2]),
+//                uintToString(partIds[3]),
+//                uintToString(partIds[4]),
+//                uintToString(partIds[5]),
+//                uintToString(partIds[6]),
+//                uintToString(partIds[7]),
+//                uintToString(partIds[8])));
+//            // 检查该 URI 是否已经铸造
+//            if (!mintedURIs[partIdString]) {
+//                uniqueIdFound = true; // 找到未被铸造的 ID
+//            }
+//        }
+//        // 增加该类型的已 mint 数量
+//        mintedSupplies[fishermanType]++;
+//
+//        _mint(playAddress, newFishermanTokenId);
+//
+//        // 可以在这里设置 CID 对应的 metadata 或者 tokenURI
+//        setTokenURI(newFishermanTokenId, partIdString);
+//        _tokenByFishermanTypeIndex[newFishermanTokenId] = partIdString;
+//        // 标记该 URI 已铸造
+//        mintedURIs[partIdString] = true;
+//        return newFishermanTokenId;
+//    }
 
     function transferFrom(address from, address to, uint256 tokenId) public onlyAdmin override(ERC721, IERC721) {
         //solhint-disable-next-line max-line-length
@@ -173,7 +230,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
 
     function transferOwnership(address newOwner) public virtual override onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(newOwner != address(0));
         _transferOwnership(newOwner);
     }
 
@@ -191,7 +248,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        require(_exists(tokenId));
         string memory _tokenURI = _tokenURIs[tokenId];
         string memory base = _baseURI();
         // If there is no base URI, return the token URI.
@@ -206,15 +263,43 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         return super.tokenURI(tokenId);
     }
 
-    function setTokenURI(uint256 tokenId, uint256 tokenCID) internal virtual {
-        require(_exists(tokenId), "FMN: URI set of nonexistent token");
-        _tokenURIs[tokenId] = string(abi.encodePacked(_baseTokenURI, tokenCID.toString(), ".json"));
+    function setTokenURI(uint256 tokenId, string memory tokenCID) internal virtual {
+        require(_exists(tokenId));
+        _tokenURIs[tokenId] = string(abi.encodePacked(_baseTokenURI, tokenCID, ".json"));
         emit MetadataUpdate(tokenId);
     }
 
     function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
         payable(owner()).transfer(balance);
+    }
+
+    function uintToString(uint8 value) internal pure returns (string memory) {
+        if (value < 10) {
+            // 如果是单数字，则前面加0
+            return string(abi.encodePacked("0", uint2str(value)));
+        } else {
+            return uint2str(value);
+        }
+    }
+
+    function uint2str(uint8 _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint8 temp = _i;
+        uint8 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory bstr = new bytes(digits);
+        uint8 k = digits;
+        while (_i != 0) {
+            bstr[--k] = bytes1(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
     }
     /**
  * @dev See {IERC721Metadata-name}.
@@ -334,7 +419,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     }
 
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual override returns (uint256) {
-        require(index < ERC721.balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
+        require(index < ERC721.balanceOf(owner), "1");
         return _ownedTokens[owner][index];
     }
 
@@ -350,16 +435,16 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
      * @dev See {IERC721Enumerable-tokenByIndex}.
      */
     function tokenByIndex(uint256 index) public view virtual override returns (uint256) {
-        require(index < totalSupply(), "ERC721Enumerable: global index out of bounds");
+        require(index < totalSupply());
         return _allTokens[index];
     }
 
     function listItem(uint256 tokenId, uint256 price) external {
         // 确保价格大于0
-        require(price > 0, "Price must be greater than zero");
+        require(price > 0);
 
         // 确保调用者是NFT的所有者
-        require(ERC721.ownerOf(tokenId) == msg.sender, "You are not the owner of this NFT");
+        require(ERC721.ownerOf(tokenId) == msg.sender);
 
         // 将NFT从卖家转移到合约本身进行托管
         ERC721.transferFrom(msg.sender, address(this), tokenId);
@@ -378,10 +463,10 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         Listing memory listing = listings[tokenId];
 
         // 确保该NFT已上架
-        require(listing.price > 0, "This NFT is not for sale");
+        require(listing.price > 0, "107");
 
         // 确保买家支付的金额足够
-        require(msg.value == listing.price, "Incorrect price");
+        require(msg.value == listing.price, "108");
 
         // 删除上架信息
         delete listings[tokenId];
@@ -398,7 +483,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     function cancelListing(uint256 tokenId) external {
         // 确保调用者是NFT的卖家
         Listing memory listing = listings[tokenId];
-        require(listing.seller == msg.sender, "You are not the seller");
+        require(listing.seller == msg.sender, "105");
 
         // 删除上架信息
         delete listings[tokenId];
@@ -409,7 +494,15 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
 
     function random() private view returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender)));
+        // 结合更多因素以增加随机性
+        return uint256(keccak256(abi.encodePacked(
+            block.timestamp,
+            block.prevrandao,
+            block.number,
+            msg.sender,
+            gasleft(),
+            address(this).balance // 合约余额也可以作为一个因素
+        )));
     }
 
     // 查询某地址拥有的所有NFT
@@ -417,7 +510,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         uint256 nftCount = balanceOf(owner);  // 获取该地址拥有的NFT数量
 
         uint256[] memory tokenIds = new uint256[](nftCount);  // 创建数组来存储Token ID
-        uint256[] memory fishermanTypes = new uint256[](nftCount);  // 创建数组来存储Token ID
+        string[] memory fishermanTypes = new string[](nftCount);  // 创建数组来存储Token ID
         for (uint256 i = 0; i < nftCount; i++) {
             tokenIds[i] = tokenOfOwnerByIndex(owner, i);  // 遍历获取每个NFT的Token ID
         }
@@ -438,10 +531,10 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
     // 修改整个数组的内容和大小
     function setMaxSupplies(uint256[] memory newMaxSupplies) public onlyAdmin {
-        require(newMaxSupplies.length >= mintedSupplies.length, "New array cannot be shorter than mintedSupplies");
+        require(newMaxSupplies.length >= mintedSupplies.length);
         for (uint256 i = 0; i < newMaxSupplies.length; i++) {
             if (i < mintedSupplies.length) {
-                require(newMaxSupplies[i] >= mintedSupplies[i], "New max supply must be greater than or equal to minted supply");
+                require(newMaxSupplies[i] >= mintedSupplies[i]);
             }
         }
         maxSupplies = newMaxSupplies;
@@ -455,13 +548,24 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
 
     // 修改数组的特定索引值
     function updateMaxSupplyAt(uint256 index, uint256 newMaxSupply) public onlyAdmin {
-        require(index < maxSupplies.length, "Index out of bounds");
-        require(newMaxSupply >= mintedSupplies[index], "New max supply must be greater than or equal to minted supply");
+        require(index < maxSupplies.length);
+        require(newMaxSupply >= mintedSupplies[index]);
         maxSupplies[index] = newMaxSupply;
     }
 
-    function getFishermanTypeByTokenId(uint256 tokenId) public view virtual returns (uint256){
+    function getFishermanTypeByTokenId(uint256 tokenId) public view virtual returns (string memory){
         return _tokenByFishermanTypeIndex[tokenId];
     }
+    // 定义一个函数来更新部位选项
+    function setPartOptions(uint256 typeIndex, uint8[9] memory newOptions) external onlyAdmin {
+        require(typeIndex < 3); // 确保类型索引有效
 
+        if (typeIndex == 0) {
+            partOptions0 = newOptions; // 更新类型 0 的部位选项
+        } else if (typeIndex == 1) {
+            partOptions1 = newOptions; // 更新类型 1 的部位选项
+        } else {
+            partOptions2 = newOptions; // 更新类型 2 的部位选项
+        }
+    }
 }
