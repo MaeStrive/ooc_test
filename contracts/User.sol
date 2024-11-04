@@ -63,6 +63,7 @@ contract User is Ownable, AccessControl {
     mapping(address => bool) private registeredPlayers;
 
     event PlayerAdded(address indexed playerAddress);
+    event PlayerDeleted(address indexed playerAddress);
     event PlayerLeveledUp(address indexed playerAddress, uint256 newLevel);
     event ExperienceAdded(
         address indexed playerAddress,
@@ -154,6 +155,12 @@ contract User is Ownable, AccessControl {
         });
         registeredPlayers[userAddress] = true;
         emit PlayerAdded(userAddress);
+    }
+
+    function deleteUser(address userAddress) external onlyAdmin {
+        require(!registeredPlayers[userAddress]);
+        registeredPlayers[userAddress] = true;
+        emit PlayerDeleted(userAddress);
     }
 
     function getUser(
@@ -399,7 +406,7 @@ contract User is Ownable, AccessControl {
         // 检查用户 GMC 余额
         require(gmcContract.balanceOf(userAddress) >= totalPrice, "103");
         // 扣除 GMC
-        gmcContract.burn(totalPrice);
+        gmcContract.transfer(userAddress, address(this), totalPrice);
         // 增加用户的 baitCount
         players[userAddress].baitCount += count;
         emit BaitCountUpdated(userAddress, players[userAddress].baitCount);

@@ -13,7 +13,7 @@ task("fisherman", "fisherman-MaeStrive")
         const myContract = await MyContract.deploy(ethers.utils.parseEther("0.000001"));
         await myContract.deployed();
         // 等待交易被矿工打包
-            const tx = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
+        const tx = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
         const tx1 = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
         const tx2 = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
         const tx3 = await myContract.mintFisherman({value: ethers.utils.parseEther("1")});
@@ -27,7 +27,7 @@ task("fisherman", "fisherman-MaeStrive")
         const receipt4 = await tx4.wait();
         const receipt5 = await tx5.wait();
 
-// 通过事件获取 rodType 和 newRodTokenId
+        // 通过事件获取 rodType 和 newRodTokenId
         const event = receipt.events.find(event => event.event === 'FishermanMinted');
         const event1 = receipt1.events.find(event => event.event === 'FishermanMinted');
         const event2 = receipt2.events.find(event => event.event === 'FishermanMinted');

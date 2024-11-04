@@ -12,39 +12,6 @@ task("user", "user-MaeStrive")
         const gMCContract = await GMCContract.deploy(10000000);
         await gMCContract.deployed();
 
-        //FishingSpot
-        const FishSpotContract = await ethers.getContractFactory("FishingSpot");
-        const fishSpotContract = await FishSpotContract.deploy();
-        await fishSpotContract.deployed();
-        const fishList = [
-            {
-                id: 1,
-                fishName: "Salmon",
-                res: "salmon.png",
-                rarityID: 1,
-                rarityNum: 10,
-                fishFarm: 101,
-                fishFramName: "Salmon Farm",
-                price: 100,
-                output: 10,
-                rarity: "Common",
-            },
-            {
-                id: 2,
-                fishName: "Tuna",
-                res: "tuna.png",
-                rarityID: 2,
-                rarityNum: 5,
-                fishFarm: 102,
-                fishFramName: "Tuna Farm",
-                price: 200,
-                output: 20,
-                rarity: "Rare",
-            },
-        ];
-        await fishSpotContract.addFishingSpot(1001, "Summer Fishing Spot", fishList, 1)
-        const spotConfig = await fishSpotContract.getFishingSpotConfig(1001)
-console.log(spotConfig)
         //User合约
         const UserContract = await ethers.getContractFactory("OOC")
 

@@ -36,7 +36,7 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    string private _baseTokenURI = "ipfs://QmUec9jNfXBAxWELeZtsX5fmgNgmcT2yLveNyNQj4GKMzy/";
+    string private _baseTokenURI = "ipfs://QmdfVNrqJ268FfmDB5c7TwZ41Wt3sf5kCESzbRZZdkefvJ/";
 
     uint256 public mintPrice;
 
@@ -110,7 +110,13 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
         uint256 totalProbability = 100;
 
         // Generate a random number in the range of 0 to totalProbability (0 to 100)
-        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % totalProbability;
+        uint256 randomNumber = uint256(keccak256(abi.encodePacked(
+        block.timestamp,
+        block.prevrandao,
+        block.number,
+        msg.sender,
+        gasleft(),
+        address(this).balance)))%totalProbability; // 合约余额也可以作为一个因素
 
         // Determine the rod type based on probabilities
         uint256 rodType = 0;
@@ -394,13 +400,13 @@ contract FishingRodNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC
             rodTypes[i] = getRodTypeByTokenId(tokenIds[i]);  // 遍历获取每个NFT的Token ID
         }
 
-        RodNft[] memory rodNftInfo=new RodNft[](nftCount);
+        RodNft[] memory rodNftInfo = new RodNft[](nftCount);
         for (uint256 i = 0; i < nftCount; i++) {
             RodNft memory rodInfo = RodNft({
                 tokenId: tokenIds[i],
                 rodType: rodTypes[i]
             });
-            rodNftInfo[i]=rodInfo;
+            rodNftInfo[i] = rodInfo;
         }
         return rodNftInfo;  // 返回所有NFT的Token ID
     }

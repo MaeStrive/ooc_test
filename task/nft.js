@@ -84,11 +84,19 @@ task("nft", "nft-MaeStrive")
         // await userContract.setCollectedGMC(deployAddress, ethers800)
         await userContract.claimGMC(userAddress, ethers.utils.parseEther("5"))
         const gmcBalance=await gmcContract.balanceOf(userAddress)
-        console.log(gmcBalance)
+        console.log("gmcBalance:",gmcBalance)
         await userContract.buyBaits(49)
-        await userContract.connect(signers[1]).buyBaits(1)
+        // await userContract.connect(signers[1]).buyBaits(1)
         const gmcBalance1=await gmcContract.balanceOf(userAddress)
-        console.log(gmcBalance1)
+        const gmcBalanceAdmin=await gmcContract.balanceOf(deployAddress)
+        console.log("gmcBalance1:",gmcBalance1)
+        console.log("gmcBalanceAdmin:",gmcBalanceAdmin)
+        await userContract.buyBaitsAdmin(userAddress,1)
+        const gmcBalanceAdmin1=await gmcContract.balanceOf(deployAddress)
+        console.log("gmcBalanceAdmin1:",gmcBalanceAdmin1)
+        const gmcBalance2=await gmcContract.balanceOf(userAddress)
+        console.log("gmcBalance2:",gmcBalance2)
+
     });
 
 module.exports = {}

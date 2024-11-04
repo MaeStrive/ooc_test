@@ -1321,7 +1321,7 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\GMC.sol": {
-      "lastModificationDate": 1729753400199,
+      "lastModificationDate": 1730685204734,
       "contentHash": "6c9742a25115b0a28cc9e4585b33982e",
       "sourceName": "contracts/GMC.sol",
       "solcConfig": {
@@ -1360,8 +1360,8 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\User.sol": {
-      "lastModificationDate": 1730272721628,
-      "contentHash": "0e1a32eb4114c1623b6ebbf17b20f30d",
+      "lastModificationDate": 1730685829921,
+      "contentHash": "6fcdc9a69f7c3a029684f4d77a0a0c8a",
       "sourceName": "contracts/User.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1480,7 +1480,7 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\Stake.sol": {
-      "lastModificationDate": 1729693611309,
+      "lastModificationDate": 1730459429481,
       "contentHash": "3a9555fa6091404656aaec307889f7e2",
       "sourceName": "contracts/Stake.sol",
       "solcConfig": {
@@ -1797,8 +1797,8 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\FishingRodNFT.sol": {
-      "lastModificationDate": 1729754288431,
-      "contentHash": "2ceec431118a6e7e110cc0f43e62ec94",
+      "lastModificationDate": 1730685070338,
+      "contentHash": "64070c1bce23dd13f6d10242c6018091",
       "sourceName": "contracts/FishingRodNFT.sol",
       "solcConfig": {
         "version": "0.8.24",
