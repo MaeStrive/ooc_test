@@ -69,7 +69,7 @@ OR
 3).运行
 
 `yarn hardhat [文件名] [构建函数传参(如果有的话)]`
-### 验证合约(需要魔法)
+### 验证合约(科学上网)
 *需要在.env文件中填写API KEY*
 
 `yarn hardhat verify --network Sepolia [合约地址] [构造函数传参(如果有的话)]`
