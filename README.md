@@ -48,9 +48,9 @@
 
 ```bash
 OPTIMISM_CHAIN_URL=https://eth-sepolia.g.alchemy.com/v2/dkJ3yHIXaGTWlMmmnlJK9uIVAXV3kwfp  // 用于连接 Optimism 区块链的 RPC URL（当前示例中是 Sepolia 测试网的 URL）
-PRIVATE_KEY=*****//填写你的私钥
-ETHERSCAN_API_KEY=*******  //主网 Etherscan 的 API 密钥，用于验证和查看合约状态
-ETHERSCAN_API_KEY_SEPOLIA=***** //epolia 测试网的 Etherscan API 密钥，用于测试环境中验证和交互
+PRIVATE_KEY=###  //填写你的私钥
+ETHERSCAN_API_KEY=###   //主网 Etherscan 的 API 密钥，用于验证和查看合约状态
+ETHERSCAN_API_KEY_SEPOLIA=###  //epolia 测试网的 Etherscan API 密钥，用于测试环境中验证和交互
 ```
 **注意提交时请不要提交此文件**
 
