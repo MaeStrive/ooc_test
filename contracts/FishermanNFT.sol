@@ -41,7 +41,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     // 新增 mapping 记录已铸造的图片 URI
     mapping(string => bool) private mintedURIs;
 
-    string private _baseTokenURI = "ipfs://QmQ3DbbCuPH5cVFn4d6CeyAMLmwzTjNNtRt8nuaEBroFJj/";
+    string private _baseTokenURI = "ipfs://Qmb8HrhMrfxracDYRn6LZpMjLtiJEGDym3a7qbASpJGoYj/";
     uint256 public mintPrice;
 
     struct Listing {
@@ -61,7 +61,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     uint256[] public mintedSupplies;
 
     // 定义状态变量，用于存储每种类型的部位选项
-    uint8[9] public partOptions0 = [1, 1, 9, 9, 9, 9, 9, 9, 9]; // 类型 0 的部位选项
+    uint8[9] public partOptions0 = [1, 1, 5, 5, 5, 5, 5, 5, 5]; // 类型 0 的部位选项
     uint8[9] public partOptions1 = [1, 1, 4, 4, 4, 4, 4, 4, 4]; // 类型 1 的部位选项
     uint8[9] public partOptions2 = [1, 1, 3, 3, 3, 3, 3, 3, 3]; // 类型 2 的部位选项
 
@@ -80,7 +80,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         mintPrice = _mintPrice;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
-        maxSupplies = [4782969, 16384, 2187];  // 初始值
+        maxSupplies = [78125, 16384, 2187];  // 初始值
         mintedSupplies = new uint256[](maxSupplies.length);  // 初始化 mintedSupplies 数组大小与 maxSupplies 一致
     }
 
@@ -105,10 +105,10 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         uint256 randomNumber = random() % 100 + 1;
         uint256 fishermanType = 0;
 
-        if (randomNumber <= 49) {
-            fishermanType = 1;
+        if (randomNumber <= 71) {
+            fishermanType = 0;
         }
-        else if (randomNumber <= 50) {
+        else if (randomNumber <= 99) {
             fishermanType = 1;
         }
         else {

@@ -10,7 +10,7 @@ interface IGMC {
 
     function balanceOf(address account) external view returns (uint256);
 
-    function transfer(address sender, address recipient, uint256 amount) external;
+//    function transfer(address sender, address recipient, uint256 amount) external;
 
     function burn(uint256 amount) external;
 }
@@ -85,6 +85,7 @@ contract User is Ownable, AccessControl {
     );
     event CollectedGMCUpdated(address indexed playerAddress, uint256 newAmount);
     event BaitCountUpdated(address indexed playerAddress, uint256 newCount);
+    event BaitPurchaseUpdated(address indexed playerAddress, uint256 price);
     event OwnershipTransferStarted(
         address indexed previousOwner,
         address indexed newOwner
@@ -92,6 +93,7 @@ contract User is Ownable, AccessControl {
     event LimitAttributeUpdate(uint256 indexed levelUpLimit, uint256 indexed baitPurchaseLimit, uint256 indexed baitPrice);
 
     event ClaimGMC(address userAddress, uint256 count);
+    event PoundUpgrade(address userAddress, uint256 count);
     constructor(address _gmcContract, address _fishermanNFT, address _fishingRodNFT) {
         levelUpLimit = 51; // 设置默认等级上限
         baitPurchaseLimit = 99; // 设置默认鱼饵购买上限
@@ -388,28 +390,15 @@ contract User is Ownable, AccessControl {
 
     function buyBaits(uint256 count) external {
         require(registeredPlayers[msg.sender]);
-        require(players[msg.sender].baitCount + count <= baitPurchaseLimit, "108");
+//        require(players[msg.sender].baitCount + count <= baitPurchaseLimit, "108");
         uint256 totalPrice = count * baitPrice; // 计算总价格
         // 检查用户 GMC 余额
         require(gmcContract.balanceOf(msg.sender) >= totalPrice, "103");
         // 扣除 GMC
         gmcContract.burn(totalPrice);
         // 增加用户的 baitCount
-        players[msg.sender].baitCount += count;
-        emit BaitCountUpdated(msg.sender, players[msg.sender].baitCount);
-    }
-
-    function buyBaitsAdmin(address userAddress, uint256 count) external onlyAdmin {
-        require(registeredPlayers[userAddress]);
-        require(players[userAddress].baitCount + count <= baitPurchaseLimit, "108");
-        uint256 totalPrice = count * baitPrice; // 计算总价格
-        // 检查用户 GMC 余额
-        require(gmcContract.balanceOf(userAddress) >= totalPrice, "103");
-        // 扣除 GMC
-        gmcContract.transfer(userAddress, address(this), totalPrice);
-        // 增加用户的 baitCount
-        players[userAddress].baitCount += count;
-        emit BaitCountUpdated(userAddress, players[userAddress].baitCount);
+//        players[msg.sender].baitCount += count;
+        emit BaitPurchaseUpdated(msg.sender, totalPrice);
     }
 
 
@@ -445,6 +434,15 @@ contract User is Ownable, AccessControl {
 
     function getPlayerInfo(address account) external view returns (PlayerInfo memory){
         return players[account];
+    }
+
+
+    //鱼池升级
+    function poundUpgrade(uint256 gmcCount) external {
+        require(registeredPlayers[msg.sender]);
+        require(gmcContract.balanceOf(msg.sender) >= gmcCount, "103");
+        gmcContract.burn(gmcCount);
+        emit PoundUpgrade(msg.sender,gmcCount);
     }
 
 
