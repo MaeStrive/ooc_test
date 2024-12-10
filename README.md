@@ -20,12 +20,11 @@
 │   ├── Stake.sol             // Stake质押合约
 │   └── OOC.sol               // OOC合约
 ├── scripts/                  // 部署脚本
-├── test/                     // 测试用例
+├── test/                     // 测试用例 使用chai测试合约的文件
 ├── hardhat.config.js         // Hardhat 配置文件
 ├── noRjContracts             // 之前版本的合约,没啥用
 ├── old                       // 也是之前版本的合约,没啥用
 ├── docs/                     // 项目文档
-├── test/                     // 使用chai测试合约的文件
 └── README.md                 // 项目说明
 
 ```
