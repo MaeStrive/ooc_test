@@ -10,6 +10,7 @@ require('./task/stake.js')
 require('./task/rod.js')
 require('./task/nft.js')
 require('./task/fisherman.js')
+require('./task/stakenew.js')
 const { ProxyAgent, setGlobalDispatcher } = require("undici");
 const proxyAgent = new ProxyAgent("http://127.0.0.1:7890");
 setGlobalDispatcher(proxyAgent);

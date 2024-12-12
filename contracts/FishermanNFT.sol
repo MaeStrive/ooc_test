@@ -41,7 +41,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     // 新增 mapping 记录已铸造的图片 URI
     mapping(string => bool) private mintedURIs;
 
-    string private _baseTokenURI = "ipfs://Qmb8HrhMrfxracDYRn6LZpMjLtiJEGDym3a7qbASpJGoYj/";
+    string private _baseTokenURI = "ipfs://bafybeidh6uk7b25gxlb5rd7vsele3tv64wx2per3ljpxvbctsn4di3xfri/";
     uint256 public mintPrice;
 
     struct Listing {
@@ -61,7 +61,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
     uint256[] public mintedSupplies;
 
     // 定义状态变量，用于存储每种类型的部位选项
-    uint8[9] public partOptions0 = [1, 1, 5, 5, 5, 5, 5, 5, 5]; // 类型 0 的部位选项
+    uint8[9] public partOptions0 = [1, 1, 4, 4, 4, 4, 4, 4, 4]; // 类型 0 的部位选项
     uint8[9] public partOptions1 = [1, 1, 4, 4, 4, 4, 4, 4, 4]; // 类型 1 的部位选项
     uint8[9] public partOptions2 = [1, 1, 3, 3, 3, 3, 3, 3, 3]; // 类型 2 的部位选项
 
@@ -80,7 +80,7 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         mintPrice = _mintPrice;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
-        maxSupplies = [78125, 16384, 2187];  // 初始值
+        maxSupplies = [16384, 16384, 2187];  // 初始值
         mintedSupplies = new uint256[](maxSupplies.length);  // 初始化 mintedSupplies 数组大小与 maxSupplies 一致
     }
 
@@ -172,56 +172,6 @@ contract FishermanNFT is Ownable, ERC721, IERC721Enumerable, AccessControl, ERC7
         }
         return newFishermanTokenId;
     }
-
-//    function freeMintFisherman(address playAddress) external onlyAdmin returns (uint256) {
-//        uint256 fishermanType = 0;
-//        require(mintedSupplies[fishermanType] < maxSupplies[fishermanType], "106");
-//
-//        uint256 newFishermanTokenId = _tokenIds.current(); // 获取当前递增的 token ID
-//        _tokenIds.increment(); // 递增 token ID
-//
-//        // 根据 fishermanType 定义每个部位的选项数量
-//        uint8[9] memory partOptions;
-//        partOptions = partOptions0;
-//
-//        string memory partIdString;
-//
-//        bool uniqueIdFound = false;
-//        while (!uniqueIdFound) {
-//            // 随机生成每个部位的 ID
-//            uint8[9] memory partIds; // 8 个部位
-//            partIds[0] = uint8(fishermanType + 1);
-//            for (uint8 i = 1; i < partIds.length; i++) {
-//                partIds[i] = uint8(random() % partOptions[i] + 1); // 随机生成部位 ID
-//            }
-//            // 构建部位 ID 字符串
-//            partIdString = string(abi.encodePacked(
-//                uintToString(partIds[0]),
-//                uintToString(partIds[1]),
-//                uintToString(partIds[2]),
-//                uintToString(partIds[3]),
-//                uintToString(partIds[4]),
-//                uintToString(partIds[5]),
-//                uintToString(partIds[6]),
-//                uintToString(partIds[7]),
-//                uintToString(partIds[8])));
-//            // 检查该 URI 是否已经铸造
-//            if (!mintedURIs[partIdString]) {
-//                uniqueIdFound = true; // 找到未被铸造的 ID
-//            }
-//        }
-//        // 增加该类型的已 mint 数量
-//        mintedSupplies[fishermanType]++;
-//
-//        _mint(playAddress, newFishermanTokenId);
-//
-//        // 可以在这里设置 CID 对应的 metadata 或者 tokenURI
-//        setTokenURI(newFishermanTokenId, partIdString);
-//        _tokenByFishermanTypeIndex[newFishermanTokenId] = partIdString;
-//        // 标记该 URI 已铸造
-//        mintedURIs[partIdString] = true;
-//        return newFishermanTokenId;
-//    }
 
     function transferFrom(address from, address to, uint256 tokenId) public onlyAdmin override(ERC721, IERC721) {
         //solhint-disable-next-line max-line-length

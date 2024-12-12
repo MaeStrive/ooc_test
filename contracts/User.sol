@@ -10,8 +10,6 @@ interface IGMC {
 
     function balanceOf(address account) external view returns (uint256);
 
-//    function transfer(address sender, address recipient, uint256 amount) external;
-
     function burn(uint256 amount) external;
 }
 

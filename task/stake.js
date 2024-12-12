@@ -32,7 +32,7 @@ task("stake", "stake-MaeStrive")
         await userContract.claimGMC(userAddress, 10000000000)
         // await userContract.buyBaits(userAddress, 2)
         //Stake合约
-        const StackContract = await ethers.getContractFactory("Stake")
+        const StackContract = await ethers.getContractFactory("StakeOld.sol")
         const stackContract = await StackContract.deploy(gMCContract.address, oOCContract.address);
         await stackContract.deployed();
         await gMCContract.addAdmin(stackContract.address)

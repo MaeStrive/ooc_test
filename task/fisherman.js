@@ -45,22 +45,26 @@ task("fisherman", "fisherman-MaeStrive")
 
         console.log("Minted Token ID 1:", tokenId1.toString());
         console.log("Fisherman Type 1:", fishermanType1.toString());
-        console.log("Minted Token ID 2:", tokenId2.toString());
+
+            console.log("Minted Token ID 2:", tokenId2.toString());
         console.log("Fisherman Type 2:", fishermanType2.toString());
-        console.log("Minted Token ID 3:", tokenId3.toString());
+
+            console.log("Minted Token ID 3:", tokenId3.toString());
         console.log("Fisherman Type 3:", fishermanType3.toString());
-        console.log("Minted Token ID 4:", tokenId4.toString());
+
+            console.log("Minted Token ID 4:", tokenId4.toString());
         console.log("Fisherman Type 4:", fishermanType4.toString());
-        console.log("Minted Token ID 5:", tokenId5.toString());
+
+            console.log("Minted Token ID 5:", tokenId5.toString());
         console.log("Fisherman Type 5:", fishermanType5.toString());
 
 
         const ownNft = await myContract.getOwnedNFTs(deployAddress);
         const tokenURI = await myContract.tokenURI(3);
         const fishermanType666 = await myContract.getFishermanTypeByTokenId(0);
-        console.log(ownNft)
-        console.log(tokenURI)
-        console.log(fishermanType666)
+        // console.log(ownNft)
+        // console.log(tokenURI)
+        // console.log(fishermanType666)
     });
 
 module.exports = {}

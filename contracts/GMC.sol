@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./ERC20.sol";
 
 contract GMC is ERC20, Ownable {
     mapping(address => bool) private _admins;
@@ -53,9 +54,6 @@ contract GMC is ERC20, Ownable {
         _mint(to, amount);
     }
 
-    function transfer(address from, address to, uint256 amount) public onlyAdmin {
-        _transfer(from, to, amount);
-    }
 
     function transferOwnership(address newOwner) public override onlyOwner {
         require(newOwner != address(0), "GMC:NEW OWNER IS ZERO ADDRESS");
