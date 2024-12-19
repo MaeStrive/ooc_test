@@ -405,13 +405,13 @@ contract User is Ownable, AccessControl {
         for (uint256 i = 0; i < playerInfo.length; i++) {
             require(registeredPlayers[playerAddresses[i]]);
             // 更新玩家信息
-            players[playerAddresses[i]].fishingCount = playerInfo[i].fishingCount;
+            players[playerAddresses[i]].fishingCount = playerInfo[i].fishingCount;//加上GET
             players[playerAddresses[i]].experience = playerInfo[i].experience;
             players[playerAddresses[i]].level = playerInfo[i].level;
             players[playerAddresses[i]].unlockedFishingSpots = playerInfo[i].unlockedFishingSpots;
-            players[playerAddresses[i]].currentFishingSpot = playerInfo[i].currentFishingSpot;
+            players[playerAddresses[i]].currentFishingSpot = playerInfo[i].currentFishingSpot;//加上GET
             players[playerAddresses[i]].fishPoolLevel = playerInfo[i].fishPoolLevel;
-            players[playerAddresses[i]].interestRate = playerInfo[i].interestRate;
+            players[playerAddresses[i]].interestRate = playerInfo[i].interestRate;//加上GET
             players[playerAddresses[i]].collectedGMC = playerInfo[i].collectedGMC;
             players[playerAddresses[i]].baitCount = playerInfo[i].baitCount;
             players[playerAddresses[i]].fishCount = playerInfo[i].fishCount;
