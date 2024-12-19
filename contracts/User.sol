@@ -158,7 +158,7 @@ contract User is Ownable, AccessControl {
     }
 
     function deleteUser(address userAddress) external onlyAdmin {
-        require(!registeredPlayers[userAddress]);
+        require(registeredPlayers[userAddress]);
         registeredPlayers[userAddress] = true;
         emit PlayerDeleted(userAddress);
     }
@@ -365,6 +365,27 @@ contract User is Ownable, AccessControl {
     ) external view returns (uint256) {
         require(registeredPlayers[playerAddress]);
         return players[playerAddress].baitCount;
+    }
+
+    function getFishingCount(
+        address playerAddress
+    ) external view returns (uint256) {
+        require(registeredPlayers[playerAddress]);
+        return players[playerAddress].fishingCount;
+    }
+
+    function getInterestRate(
+        address playerAddress
+    ) external view returns (uint256) {
+        require(registeredPlayers[playerAddress]);
+        return players[playerAddress].interestRate;
+    }
+
+    function getCurrentFishingSpot(
+        address playerAddress
+    ) external view returns (uint256) {
+        require(registeredPlayers[playerAddress]);
+        return players[playerAddress].currentFishingSpot;
     }
 
     function setBaitCount(

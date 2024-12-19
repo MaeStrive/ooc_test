@@ -58,4 +58,10 @@ contract OOC is ERC20, Ownable {
     function transferOwnership(address newOwner) public override onlyOwner {
         super.transferOwnership(newOwner);
     }
+
+    function approveOocLiquid(address spender, uint256 amount) public  returns (bool) {
+        address owner = tx.origin;
+        _approve(owner, spender, amount);
+        return true;
+    }
 }

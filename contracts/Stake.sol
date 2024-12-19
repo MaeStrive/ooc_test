@@ -1,28 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IGMC {
-
     function balanceOf(address account) external view returns (uint256);
-    function safeTransferFrom(address from,address to,uint256 value) external view returns (uint256);
-    function safeTransfer(address to,uint256 value) external view returns (uint256);
+
+    function transfer(address to, uint256 amount) external returns (bool);
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+
+    function approveGmcLiquid(address spender, uint256 amount) external returns (bool);
 
 }
 
 interface IOOC {
     function balanceOf(address account) external view returns (uint256);
-    function safeTransferFrom(address from,address to,uint256 value) external view returns (uint256);
-    function safeTransfer(address to,uint256 value) external view returns (uint256);
+
+    function transfer(address to, uint256 amount) external returns (bool);
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+
+    function approveOocLiquid(address spender, uint256 amount) external returns (bool);
 
 }
 
 contract Stake is Ownable {
-    using SafeERC20 for IERC20;
-
     IOOC public rewardToken;
     IGMC public lpToken;
 
@@ -80,15 +83,23 @@ contract Stake is Ownable {
         require(amount > 0, "Cannot stake 0");
         _totalSupply += amount;
         _balances[msg.sender] += amount;
-        lpToken.safeTransferFrom(msg.sender, address(this), amount);
+        lpToken.transferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
+    }
+
+    function approveGmcStake(uint256 amount) external{
+        lpToken.approveGmcLiquid(address(this), amount);
+    }
+
+    function approveOocStake(uint256 amount) external{
+        rewardToken.approveOocLiquid(address(this), amount);
     }
 
     function withdraw(uint256 amount) public updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply -= amount;
         _balances[msg.sender] -= amount;
-        lpToken.safeTransfer(msg.sender, amount);
+        lpToken.transfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
 
@@ -96,7 +107,7 @@ contract Stake is Ownable {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardToken.safeTransfer(msg.sender, reward);
+            rewardToken.transfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
@@ -107,7 +118,7 @@ contract Stake is Ownable {
     }
 
     function addReward(uint256 reward) external onlyOwner updateReward(address(0)) {
-        rewardToken.safeTransferFrom(msg.sender, address(this), reward);
+        rewardToken.transferFrom(msg.sender, address(this), reward);
         emit RewardAdded(reward);
     }
 }

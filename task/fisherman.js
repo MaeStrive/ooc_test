@@ -9,7 +9,7 @@ task("fisherman", "fisherman-MaeStrive")
         const deployAddress = signers[0].address;
         const userAddress = signers[1].address;
         // 获取合约 ABI
-        const MyContract = await ethers.getContractFactory("FishermanNFT");
+        const MyContract = await ethers.getContractFactory("FishermanNFTTest");
         const myContract = await MyContract.deploy(ethers.utils.parseEther("0.000001"));
         await myContract.deployed();
         // 等待交易被矿工打包

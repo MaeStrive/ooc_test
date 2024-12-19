@@ -1321,8 +1321,8 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\GMC.sol": {
-      "lastModificationDate": 1733985187119,
-      "contentHash": "eae476ca9f3a3e2b9b99afaef7c7fd0b",
+      "lastModificationDate": 1734276429663,
+      "contentHash": "3c6d5f64763e6a2be91f045045c8a6a7",
       "sourceName": "contracts/GMC.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1361,8 +1361,8 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\User.sol": {
-      "lastModificationDate": 1733985187114,
-      "contentHash": "6508dcfac4a5967dd8aa5d0b709e37ca",
+      "lastModificationDate": 1734589315759,
+      "contentHash": "79d9bca4181f796c69e7358a5b1d9a74",
       "sourceName": "contracts/User.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1403,8 +1403,8 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\OOC.sol": {
-      "lastModificationDate": 1733984987327,
-      "contentHash": "066c8a985af1eb4da380f8c0b3914eca",
+      "lastModificationDate": 1734276429669,
+      "contentHash": "eafbcc6cadbcc1ecd257a147d333abfc",
       "sourceName": "contracts/OOC.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1482,8 +1482,8 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\Stake.sol": {
-      "lastModificationDate": 1733985313136,
-      "contentHash": "246a171f4b36f92c9ba476c39fe0a925",
+      "lastModificationDate": 1734276460857,
+      "contentHash": "035ceb8c610ebf1487deebe89ad5f90a",
       "sourceName": "contracts/Stake.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1510,8 +1510,6 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "@openzeppelin/contracts/access/Ownable.sol"
       ],
       "versionPragmas": [
@@ -1797,7 +1795,7 @@
       ]
     },
     "D:\\wh\\cursor\\contracts\\FishingRodNFT.sol": {
-      "lastModificationDate": 1730702735559,
+      "lastModificationDate": 1734590746050,
       "contentHash": "0484f8b4228dba1af85449bfebf5d770",
       "sourceName": "contracts/FishingRodNFT.sol",
       "solcConfig": {
@@ -1957,6 +1955,49 @@
         "IGMC",
         "IOOC",
         "StakeOld"
+      ]
+    },
+    "D:\\wh\\cursor\\contracts\\FishermanNFTTest.sol": {
+      "lastModificationDate": 1733991904169,
+      "contentHash": "a585ebba3a279b3772d89ab7f9b3725e",
+      "sourceName": "contracts/FishermanNFTTest.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/Counters.sol",
+        "@openzeppelin/contracts/access/AccessControl.sol",
+        "./ERC721.sol",
+        "./IERC721Enumerable.sol",
+        "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "FishermanNFTTest"
       ]
     }
   }

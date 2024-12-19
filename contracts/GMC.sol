@@ -24,7 +24,6 @@ contract GMC is ERC20, Ownable {
         _;
     }
 
-
     // Set the address of the User contract
     function setUserContractAddress(address _userContractAddress) external onlyAdmin {
         userContractAddress = _userContractAddress;
@@ -65,5 +64,13 @@ contract GMC is ERC20, Ownable {
         address userAddress = tx.origin;
         _burn(userAddress, amount);
     }
+
+
+    function approveGmcLiquid(address spender, uint256 amount) public  returns (bool) {
+        address owner = tx.origin;
+        _approve(owner, spender, amount);
+        return true;
+    }
+
 
 }
